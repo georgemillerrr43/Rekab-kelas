@@ -19,6 +19,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Accept both kelas ID (UUID) and kelas nama
+    let kelasRecord = await prisma.kelas.findFirst({
+      where: { OR: [{ id: kelas }, { nama: kelas }] },
+    });
+    if (!kelasRecord) {
+      return NextResponse.json({ error: 'Kelas tidak ditemukan' }, { status: 404 });
+    }
+
     const parts = (bulan || '').toLowerCase().split(' ');
     const monthName = parts[0] || '';
     const year = parseInt(parts[1]) || new Date().getFullYear();
@@ -28,7 +36,7 @@ export async function GET(request: NextRequest) {
     const endDate = new Date(year, month + 1, 0, 23, 59, 59);
 
     const students = await prisma.siswa.findMany({
-      where: { kelasId: kelas },
+      where: { kelasId: kelasRecord.id },
       orderBy: { nis: 'asc' },
     });
 

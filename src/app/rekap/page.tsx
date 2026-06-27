@@ -63,6 +63,7 @@ function RekapPageInner() {
   const [tab, setTab] = useState<TabType>((sp.get('tab') as TabType) || 'bulanan');
   const [kelas, setKelas] = useState('');
   const [bulan, setBulan] = useState('Juni 2026');
+  const [kelasList, setKelasList] = useState<{ id: string; nama: string; waliKelas: string }[]>([]);
   const [waliKelas, setWaliKelas] = useState('');
   const [rekapList, setRekapList] = useState<StudentRecap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -162,7 +163,7 @@ function RekapPageInner() {
           <div className="glass-card p-5">
             <h3 className="text-sm font-bold text-[var(--text-primary)] mb-3">Filter</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Kelas</label><select value={kelas} onChange={(e) => setKelas(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm"><option value="XI-RPL-1">XI RPL 1</option><option value="XI-RPL-2">XI RPL 2</option><option value="XII-RPL-1">XII RPL 1</option></select></div>
+              <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Kelas</label><select value={kelas} onChange={(e) => setKelas(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
               <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Bulan</label><select value={bulan} onChange={(e) => setBulan(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm"><option value="Juni 2026">Juni 2026</option><option value="Mei 2026">Mei 2026</option><option value="April 2026">April 2026</option></select></div>
               <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Wali Kelas</label><input type="text" value={waliKelas} onChange={(e) => setWaliKelas(e.target.value)} className="glass-input w-full p-2 rounded-lg text-sm" /></div>
             </div>
@@ -207,7 +208,7 @@ function RekapPageInner() {
         <div className="space-y-6">
           <div className="glass-card p-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Kelas</label><select value={hKelas} onChange={(e) => setHKelas(e.target.value)} className="glass-select w-full p-2.5 rounded-lg text-sm"><option value="XI-RPL-1">XI RPL 1</option><option value="XI-RPL-2">XI RPL 2</option><option value="XII-RPL-1">XII RPL 1</option></select></div>
+              <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Kelas</label><select value={hKelas} onChange={(e) => setHKelas(e.target.value)} className="glass-select w-full p-2.5 rounded-lg text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
               <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Bulan</label><select value={hBulan} onChange={(e) => { setHBulan(e.target.value); setHTanggal(null); }} className="glass-select w-full p-2.5 rounded-lg text-sm"><option value="Juni 2026">Juni 2026</option><option value="Mei 2026">Mei 2026</option><option value="April 2026">April 2026</option></select></div>
             </div>
           </div>
