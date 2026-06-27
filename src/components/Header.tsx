@@ -51,6 +51,7 @@ export default function Header() {
       navLinks = [
         { href: '/guru', label: 'Dashboard' },
         { href: '/guru/absensi', label: 'Absensi' },
+        { href: '/guru/approval', label: 'Approval' },
         { href: '/rekap', label: 'Rekap' },
       ];
     } else {

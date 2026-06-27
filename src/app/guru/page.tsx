@@ -39,6 +39,10 @@ export default function GuruDashboard() {
           <p className="font-bold text-sm text-[var(--text-primary)] group-hover:text-[var(--brand)]">Input Absensi</p>
           <p className="text-xs text-[var(--text-muted)] mt-0.5">Catat kehadiran siswa hari ini.</p>
         </Link>
+        <Link href="/guru/approval" className="glass-card-hover p-5 group">
+          <p className="font-bold text-sm text-[var(--text-primary)] group-hover:text-[var(--brand)]">Approval Izin</p>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">Setujui atau tolak izin siswa.</p>
+        </Link>
         <Link href="/rekap" className="glass-card-hover p-5 group">
           <p className="font-bold text-sm text-[var(--text-primary)] group-hover:text-[var(--brand)]">Rekap dan PDF</p>
           <p className="text-xs text-[var(--text-muted)] mt-0.5">Lihat rekap dan unduh PDF.</p>
