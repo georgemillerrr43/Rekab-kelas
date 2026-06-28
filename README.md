@@ -57,7 +57,7 @@ sequenceDiagram
     G->>DB: Catat Absensi Harian
     G->>DB: Setujui/Tolak Izin
     G-->>S: Status Approval
-    Note over A,G,S: Semua role bisa unduh rekap PDF
+    Note right of S: Semua role bisa unduh rekap PDF
 ```
 
 1. **Admin** login dan membuat data master: **Kelas** → **Guru** (Wali Kelas) → **Siswa**
