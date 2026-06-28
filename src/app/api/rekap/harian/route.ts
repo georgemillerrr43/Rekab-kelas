@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/rekap/harian?tanggal=YYYY-MM-DD&kelas=XI-RPL-1
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const tanggal = searchParams.get('tanggal');
@@ -49,7 +48,6 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Summary counts
     const hadir = result.filter((r) => r.status === 'HADIR').length;
     const izin = result.filter((r) => r.status === 'IZIN').length;
     const sakit = result.filter((r) => r.status === 'SAKIT').length;

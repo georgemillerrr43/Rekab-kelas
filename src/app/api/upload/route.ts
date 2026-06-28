@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Tidak ada file yang diunggah' }, { status: 400 });
     }
 
-    // 1. Validasi Tipe MIME secara ketat di sisi server (Mencegah video/eksekusi file berbahaya)
+    // Validate file type and extension
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!allowedMimeTypes.includes(file.type)) {
       return NextResponse.json(
@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Proteksi Ekstensi File
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     const allowedExtensions = ['jpg', 'jpeg', 'png'];
     if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
@@ -31,7 +30,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Validasi Ukuran File (Maksimal 2MB)
     const maxSizeBytes = 2 * 1024 * 1024;
     if (file.size > maxSizeBytes) {
       return NextResponse.json(
@@ -44,24 +42,15 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Setup direktori penyimpanan local server: public/uploads
     const uploadDir = join(process.cwd(), 'public', 'uploads');
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (err) {
-      // Folder sudah ada
-    }
+    await mkdir(uploadDir, { recursive: true }).catch(() => {});
 
-    // Generate nama file acak yang aman
     const uniqueId = Math.random().toString(36).substring(2, 10) + '-' + Date.now();
     const cleanFileName = `bukti-${uniqueId}.${fileExtension}`;
     const filePath = join(uploadDir, cleanFileName);
 
-    // Simpan file ke sistem penyimpanan server
     await writeFile(filePath, buffer);
-    console.log(`[UPLOAD API SUCCESS] File disimpan di: ${filePath}`);
 
-    // Return URL publik
     const publicUrl = `/api/uploads/${cleanFileName}`;
 
     return NextResponse.json({
@@ -70,7 +59,6 @@ export async function POST(request: NextRequest) {
       fileName: cleanFileName,
     });
   } catch (error: any) {
-    console.error('Error in upload API:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan internal server saat memproses unggahan file.' },
       { status: 500 }

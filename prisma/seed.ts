@@ -28,14 +28,12 @@ const dataSiswa = [
 ];
 
 async function main() {
-  console.log('Membersihkan database...');
   await prisma.kehadiran.deleteMany({});
   await prisma.izin.deleteMany({});
   await prisma.siswa.deleteMany({});
   await prisma.kelas.deleteMany({});
   await prisma.admin.deleteMany({});
 
-  console.log('\nMembuat akun Admin...');
   const adminPassword = await hashPassword('admin123');
   await prisma.admin.create({
     data: {
@@ -45,7 +43,6 @@ async function main() {
     },
   });
 
-  console.log('\nMembuat data Kelas...');
   const kelasMap = new Map<string, string>();
   for (const kelas of dataKelas) {
     const created = await prisma.kelas.create({
@@ -54,7 +51,6 @@ async function main() {
     kelasMap.set(kelas.nama, created.id);
   }
 
-  console.log('\nMembuat akun Siswa...');
   const siswaPassword = await hashPassword('siswa123');
   for (const siswa of dataSiswa) {
     const kelasId = kelasMap.get(siswa.kelas);
@@ -75,10 +71,6 @@ async function main() {
       },
     });
   }
-
-  console.log('\nSeeding selesai! Akun:');
-  console.log('  Admin: admin / admin123');
-  console.log('  Siswa: [NIS] / siswa123');
 }
 
 main()

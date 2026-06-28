@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     const isSecure = request.url.startsWith('https://') || request.headers.get('x-forwarded-proto') === 'https';
 
-    // 1. Cari di tabel Admin
+    // Check Admin, Guru, Siswa tables in order
     const admin = await prisma.admin.findUnique({ where: { username } });
     if (admin && await verifyPassword(password, admin.password)) {
       loginAttempts.delete(ip);
@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // 2. Cari di tabel Guru
     const guru = await prisma.guru.findUnique({ where: { username } });
     if (guru && await verifyPassword(password, guru.password)) {
       loginAttempts.delete(ip);
@@ -92,7 +91,6 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // 3. Cari di tabel Siswa
     const siswa = await prisma.siswa.findUnique({ where: { username } });
     if (siswa && await verifyPassword(password, siswa.password)) {
       loginAttempts.delete(ip);
@@ -103,7 +101,6 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // 4. Login Gagal
     return NextResponse.json({ error: 'Username atau Password salah!' }, { status: 401 });
   } catch (error: any) {
     console.error('Error login API:', error);

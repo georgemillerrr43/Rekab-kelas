@@ -5,7 +5,6 @@ import { getSession } from '@/lib/auth';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
-// POST /api/siswa/izin - Siswa mengajukan izin/sakit mandiri
 export async function POST(request: NextRequest) {
   const session = getSession(request);
   if (!session || session.role !== 'SISWA') {
@@ -65,7 +64,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/siswa/izin - Ambil riwayat izin milik siswa yang login
 export async function GET(request: NextRequest) {
   const session = getSession(request);
   if (!session || session.role !== 'SISWA') {

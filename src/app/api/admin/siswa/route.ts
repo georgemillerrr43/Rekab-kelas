@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, getSession } from '@/lib/auth';
 
-// Endpoint: GET /api/admin/siswa - Ambil daftar semua siswa
 export async function GET(request: NextRequest) {
   const session = getSession(request);
   if (!session || session.role !== 'ADMIN') {
@@ -144,7 +143,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// Endpoint: DELETE /api/admin/siswa - Hapus siswa berdasarkan ID
 export async function DELETE(request: NextRequest) {
   const sessionToken = request.cookies.get('session_token')?.value;
   if (!sessionToken || !sessionToken.startsWith('ADMIN.')) {

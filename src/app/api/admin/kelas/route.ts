@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession, hashPassword } from '@/lib/auth';
 
-// GET - List all classes
 export async function GET(req: NextRequest) {
   try {
     const session = getSession(req);
@@ -27,7 +26,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST - Create new class + optional guru account
 export async function POST(req: NextRequest) {
   try {
     const session = getSession(req);
@@ -70,7 +68,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT - Update class
 export async function PUT(req: NextRequest) {
   try {
     const session = getSession(req);
@@ -90,7 +87,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Kelas tidak ditemukan' }, { status: 404 });
     }
 
-    // If nama changed, check for duplicates
     if (nama && nama !== existing.nama) {
       const duplicate = await prisma.kelas.findUnique({ where: { nama } });
       if (duplicate) {
@@ -113,7 +109,6 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE - Delete class
 export async function DELETE(req: NextRequest) {
   try {
     const session = getSession(req);
@@ -128,7 +123,6 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'ID kelas harus disediakan' }, { status: 400 });
     }
 
-    // Check if class exists
     const kelas = await prisma.kelas.findUnique({ where: { id } });
 
     if (!kelas) {

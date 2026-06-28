@@ -14,18 +14,15 @@ export interface SessionData {
   nis?: string;
 }
 
-// 1. Hash Password menggunakan bcrypt (secure with salt)
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
-// 2. Compare Password dengan hashed password
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 
-// 2. Enkripsi Session Data menggunakan AES-256-CBC
-// Output format: ROLE.encryptedHex (Aman untuk Edge Middleware parsing)
+// Format: ROLE.encryptedHex
 export function encryptSession(data: SessionData): string {
   const key = crypto.scryptSync(SECRET_KEY, 'salt-session', 32);
   const iv = Buffer.alloc(16, 0); 
@@ -37,7 +34,6 @@ export function encryptSession(data: SessionData): string {
   return `${data.role}.${encrypted}`;
 }
 
-// 3. Dekripsi Session Data menggunakan AES-256-CBC
 export function decryptSession(encryptedData: string): SessionData | null {
   try {
     const parts = encryptedData.split('.');
@@ -56,31 +52,25 @@ export function decryptSession(encryptedData: string): SessionData | null {
     const parsed = JSON.parse(decrypted) as SessionData;
 
     // Validasi integritas data: role hasil dekripsi wajib sama dengan prefix
-    if (parsed.role !== rolePrefix) {
-      return null;
-    }
-    
+    if (parsed.role !== rolePrefix) return null;
+
     return parsed;
   } catch (err) {
     return null;
   }
 }
 
-// 4. Mengambil Session dari Cookies Request
+// 4-6. Session helpers
 export function getSession(req: NextRequest): SessionData | null {
   const cookie = req.cookies.get(SESSION_COOKIE_NAME);
   if (!cookie?.value) return null;
   return decryptSession(cookie.value);
 }
 
-// 5. Cek Apakah Session adalah Admin
 export function isAdmin(req: NextRequest): boolean {
-  const session = getSession(req);
-  return session?.role === 'ADMIN';
+  return getSession(req)?.role === 'ADMIN';
 }
 
-// 6. Cek Apakah Session adalah Siswa
 export function isSiswa(req: NextRequest): boolean {
-  const session = getSession(req);
-  return session?.role === 'SISWA';
+  return getSession(req)?.role === 'SISWA';
 }
