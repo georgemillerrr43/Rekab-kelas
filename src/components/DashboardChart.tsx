@@ -7,77 +7,73 @@ interface DashboardChartProps {
   dataDistribusi?: { label: string; value: number; color: string }[];
 }
 
-const DEFAULT_MINGGUAN = [
-  { hari: 'Senin', persen: 96 }, { hari: 'Selasa', persen: 92 },
-  { hari: 'Rabu', persen: 94 }, { hari: 'Kamis', persen: 88 }, { hari: 'Jumat', persen: 91 },
-];
-const DEFAULT_DISTRIBUSI = [
-  { label: 'Hadir', value: 89.2, color: 'bg-[var(--bullish)]' },
-  { label: 'Izin', value: 5.1, color: 'bg-[var(--warning)]' },
-  { label: 'Sakit', value: 3.4, color: 'bg-[var(--info)]' },
-  { label: 'Alpa', value: 2.3, color: 'bg-[var(--bearish)]' },
-];
-
 export default function DashboardChart({
-  dataMingguan = DEFAULT_MINGGUAN,
-  dataDistribusi = DEFAULT_DISTRIBUSI,
+  dataMingguan,
+  dataDistribusi = [],
 }: DashboardChartProps) {
-  const hadirItem = dataDistribusi.find((d) => d.label === 'Hadir');
-  const hadirValue = hadirItem ? hadirItem.value : 100;
-  const hadirRasio = hadirValue / 100;
+  const hasWeeklyData = dataMingguan && dataMingguan.length > 0 && dataMingguan.some(d => d.persen >= 0 && d.persen <= 100);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass-card p-5 flex flex-col justify-between">
-        <div>
-          <h3 className="text-base font-bold text-[var(--text-primary)]">Tren Kehadiran Mingguan (%)</h3>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">Rata-rata kehadiran harian kelas minggu ini.</p>
-        </div>
-        <div className="mt-6 relative h-44 w-full flex items-end justify-between px-2">
-          {dataMingguan.map((item) => (
-            <div key={item.hari} className="flex flex-col items-center group w-1/5">
-              <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 text-white text-[10px] font-bold px-2 py-1 rounded-md -translate-y-12 shadow-sm pointer-events-none z-10 backdrop-blur-sm border border-white/10">
-                {item.persen}%
-              </div>
-              <div className="w-8 sm:w-12 bg-[var(--bg-glass)] rounded-[var(--radius-pill)] overflow-hidden flex items-end h-36">
-                <div className="w-full bg-gradient-to-t from-[var(--brand)] to-[#60a5fa] rounded-[var(--radius-pill)] transition-all duration-500 ease-out group-hover:brightness-110"
-                  style={{ height: `${item.persen}%` }} />
-              </div>
-              <span className="text-xs font-semibold text-[var(--text-muted)] mt-2">{item.hari}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="glass-card p-5 flex flex-col justify-between">
-        <div>
-          <h3 className="text-base font-bold text-[var(--text-primary)]">Distribusi Status</h3>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">Rasio akumulasi kehadiran.</p>
-        </div>
-        <div className="flex items-center justify-center my-4 relative">
-          <svg className="w-32 h-32 transform -rotate-90">
-            <circle cx="64" cy="64" r="50" fill="transparent" stroke="rgba(255,255,255,0.06)" strokeWidth="12" />
-            <circle cx="64" cy="64" r="50" fill="transparent" stroke="var(--bullish)" strokeWidth="12"
-              strokeDasharray={`${2 * Math.PI * 50}`}
-              strokeDashoffset={`${2 * Math.PI * 50 * (1 - hadirRasio)}`}
-              strokeLinecap="round" />
-          </svg>
-          <div className="absolute text-center">
-            <span className="text-2xl font-black text-[var(--text-primary)]">{hadirValue}%</span>
-            <span className="text-[10px] text-[var(--text-muted)] block -mt-1">Kehadiran</span>
+      {/* Weekly trend — only show if data is meaningful */}
+      {hasWeeklyData ? (
+        <div className="lg:col-span-2 glass-card p-5">
+          <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">Tren Kehadiran Mingguan</h3>
+          <p className="text-xs text-[var(--text-muted)] mb-4">Persentase kehadiran per hari.</p>
+          <div className="flex items-end justify-between gap-3 h-40">
+            {dataMingguan.map((item) => {
+              const pct = Math.min(Math.max(item.persen, 0), 100);
+              return (
+                <div key={item.hari} className="flex flex-col items-center flex-1 h-full justify-end">
+                  <span className="text-[10px] font-bold text-[var(--text-secondary)] mb-1">
+                    {pct}%
+                  </span>
+                  <div className="w-full bg-[var(--bg-glass)] rounded-[var(--radius-pill)] overflow-hidden flex items-end"
+                    style={{ height: '100%', maxHeight: '120px' }}>
+                    <div
+                      className="w-full bg-gradient-to-t from-[var(--brand)] to-[#60a5fa] rounded-[var(--radius-pill)] transition-all duration-500"
+                      style={{ height: `${pct}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] font-semibold text-[var(--text-muted)] mt-2">{item.hari}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
-        <div className="space-y-2 mt-2">
-          {dataDistribusi.map((item) => (
-            <div key={item.label} className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-[var(--radius-pill)] ${item.color}`} />
-                <span className="font-semibold text-[var(--text-secondary)]">{item.label}</span>
-              </div>
-              <span className="font-bold text-[var(--text-primary)]">{item.value}%</span>
-            </div>
-          ))}
+      ) : (
+        <div className="lg:col-span-2 glass-card p-5 flex items-center justify-center">
+          <div className="text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-2 opacity-50">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+            </svg>
+            <p className="text-xs text-[var(--text-muted)]">Data mingguan belum tersedia</p>
+          </div>
         </div>
+      )}
+
+      {/* Distribution stats — simple list, no donut */}
+      <div className="glass-card p-5">
+        <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">Distribusi Kehadiran</h3>
+        <p className="text-xs text-[var(--text-muted)] mb-4">Total akumulasi bulan ini.</p>
+        {dataDistribusi.length === 0 ? (
+          <div className="text-center py-8 text-[var(--text-muted)] text-xs">Belum ada data.</div>
+        ) : (
+          <div className="space-y-3">
+            {dataDistribusi.map((item) => (
+              <div key={item.label}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="font-semibold text-[var(--text-secondary)]">{item.label}</span>
+                  <span className="font-bold text-[var(--text-primary)]">{item.value}%</span>
+                </div>
+                <div className="h-2 bg-[var(--bg-glass)] rounded-[var(--radius-pill)] overflow-hidden">
+                  <div className={`h-full rounded-[var(--radius-pill)] transition-all duration-500 ${item.color || 'bg-[var(--brand)]'}`}
+                    style={{ width: `${Math.min(Math.max(item.value, 0), 100)}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

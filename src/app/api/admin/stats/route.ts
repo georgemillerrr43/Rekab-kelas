@@ -78,10 +78,13 @@ export async function GET(request: NextRequest) {
       const currentDay = d.getDay();
       const distance = offset - currentDay;
       d.setDate(d.getDate() + distance);
-      d.setHours(0, 0, 0, 0);
+      const dateStr = d.toISOString().split('T')[0];
 
-      const dayKhd = monthlyKehadiran.filter((k) => k.tanggal.getTime() === d.getTime());
-      if (dayKhd.length === 0) return 100;
+      const dayKhd = monthlyKehadiran.filter((k) => {
+        const kd = k.tanggal.toISOString().split('T')[0];
+        return kd === dateStr;
+      });
+      if (dayKhd.length === 0) return -1;
       const h = dayKhd.filter((k) => k.status === 'HADIR').length;
       return Math.round((h / dayKhd.length) * 100);
     };
@@ -92,7 +95,7 @@ export async function GET(request: NextRequest) {
       { hari: 'Rabu', persen: getDayPercentage(3) },
       { hari: 'Kamis', persen: getDayPercentage(4) },
       { hari: 'Jumat', persen: getDayPercentage(5) },
-    ];
+    ].filter(d => d.persen >= 0);
 
     return NextResponse.json({
       avgAttendance,
