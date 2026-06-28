@@ -16,22 +16,24 @@ export async function GET(req: NextRequest) {
     const kehadiranList = await prisma.kehadiran.findMany({ where: { tanggal: targetDate, siswaId: { in: siswaIds } }, include: { izin: true } });
     const km = new Map(kehadiranList.map(k => [k.siswaId, k]));
 
-    const approvedIzin = await prisma.izin.findMany({
-      where: { siswaId: { in: siswaIds }, statusApproval: 'APPROVED', kehadiran: { tanggal: targetDate } },
+    // izin di-query via tanggal langsung (bisa tanpa Kehadiran)
+    const allIzin = await prisma.izin.findMany({
+      where: { siswaId: { in: siswaIds }, tanggal: targetDate },
+      select: { siswaId: true, statusApproval: true },
     });
 
-    const pendingIzin = await prisma.izin.findMany({
-      where: { siswaId: { in: siswaIds }, statusApproval: 'PENDING', kehadiran: { tanggal: targetDate } },
-      select: { siswaId: true },
-    });
+    // Jangan set status kehadiran dari izin PENDING — biarkan BELUM
+    const pendingSet = new Set<string>();
     const izinStatus = new Map<string, string>();
-    for (const i of pendingIzin) izinStatus.set(i.siswaId, 'PENDING');
-    for (const i of approvedIzin) izinStatus.set(i.siswaId, 'APPROVED');
+    for (const i of allIzin) {
+      if (i.statusApproval === 'PENDING') pendingSet.add(i.siswaId);
+      else izinStatus.set(i.siswaId, i.statusApproval);
+    }
 
     const students = guru.kelas.siswa.map(s => {
       const k = km.get(s.id);
       const izinSt = izinStatus.get(s.id);
-      return { id: s.id, nis: s.nis, nama: s.nama, whatsappOrangTua: s.whatsappOrangTua, status: k?.status || 'BELUM', alasan: k?.izin?.alasan || '', buktiUrl: k?.izin?.buktiFoto || '', izinAuto: false, hasPending: izinSt === 'PENDING', hasApprovedIzin: izinSt === 'APPROVED' };
+      return { id: s.id, nis: s.nis, nama: s.nama, whatsappOrangTua: s.whatsappOrangTua, status: k?.status || 'BELUM', alasan: k?.izin?.alasan || '', buktiUrl: k?.izin?.buktiFoto || '', izinAuto: false, hasPending: pendingSet.has(s.id), hasApprovedIzin: izinSt === 'APPROVED' };
     });
 
     // ponytail: always show the form; success only from POST
@@ -66,7 +68,7 @@ export async function POST(req: NextRequest) {
         let izinId = existingKhd?.izinId || undefined;
         if (!izinId && item.alasan) {
           const newIzin = await prisma.izin.create({
-            data: { siswaId: item.siswaId, alasan: item.alasan, buktiFoto: item.buktiUrl || '', statusApproval: 'PENDING' },
+            data: { siswaId: item.siswaId, alasan: item.alasan, buktiFoto: item.buktiUrl || '', statusApproval: 'PENDING', tanggal: new Date(tanggal), tipe: item.status },
           });
           izinId = newIzin.id;
         } else if (izinId) {

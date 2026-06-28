@@ -85,6 +85,8 @@ model Izin {
   id             String         @id @default(uuid())
   alasan         String         @db.Text
   buktiFoto      String         // Path penyimpanan foto bukti, e.g., /uploads/bukti-uuid.jpg
+  tanggal        DateTime?      @db.Date // Tanggal izin (diisi pas submit siswa, dipake approval utk create Kehadiran)
+  tipe           String?        // "IZIN" atau "SAKIT" (diset pas submit siswa)
   statusApproval ApprovalStatus @default(PENDING)
   siswaId        String
   siswa          Siswa          @relation(fields: [siswaId], references: [id], onDelete: Cascade)

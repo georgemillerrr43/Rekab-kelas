@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
       nis: r.siswa.nis,
       nama: r.siswa.nama,
       kelas: r.siswa.kelas.nama,
-      tanggal: r.kehadiran?.tanggal?.toISOString() || '',
-      tipe: r.kehadiran?.status || 'IZIN',
+      tanggal: r.tanggal?.toISOString?.()?.split('T')[0] || '',
+      tipe: r.tipe || r.kehadiran?.status || 'IZIN',
       alasan: r.alasan,
       buktiFoto: r.buktiFoto,
       status: r.statusApproval,
@@ -73,18 +73,33 @@ export async function POST(request: NextRequest) {
 
     await prisma.izin.update({ where: { id }, data: { statusApproval: status } });
 
-    if (status === 'REJECTED') {
+    const tanggal = izin.tanggal || new Date();
+    if (status === 'APPROVED') {
+      // Izin disetujui → bikin/update Kehadiran status sesuai tipe izin
+      await prisma.kehadiran.upsert({
+        where: { siswaId_tanggal: { siswaId: izin.siswaId, tanggal } },
+        update: { status: (izin.tipe as any) || 'IZIN', izinId: id },
+        create: { siswaId: izin.siswaId, tanggal, status: (izin.tipe as any) || 'IZIN', izinId: id },
+      });
+    } else {
+      // Izin ditolak → Kehadiran status ALPA
       const khd = await prisma.kehadiran.findFirst({ where: { izinId: id } });
       if (khd) {
         await prisma.kehadiran.update({ where: { id: khd.id }, data: { status: 'ALPA', izinId: null } });
+      } else {
+        await prisma.kehadiran.upsert({
+          where: { siswaId_tanggal: { siswaId: izin.siswaId, tanggal } },
+          update: { status: 'ALPA' },
+          create: { siswaId: izin.siswaId, tanggal, status: 'ALPA' },
+        });
       }
     }
 
     await sendWhatsAppNotification({
       namaSiswa: izin.siswa.nama,
       nis: izin.siswa.nis,
-      tanggal: new Date().toISOString(),
-      status: status === 'APPROVED' ? 'IZIN' : 'ALPA',
+      tanggal: tanggal.toISOString().split('T')[0],
+      status: status === 'APPROVED' ? ((izin.tipe as 'IZIN' | 'SAKIT') || 'IZIN') : 'ALPA',
       whatsappOrangTua: izin.siswa.whatsappOrangTua,
       alasan: `Pengajuan izin ${status === 'APPROVED' ? 'disetujui' : 'ditolak'} oleh wali kelas.`,
     });

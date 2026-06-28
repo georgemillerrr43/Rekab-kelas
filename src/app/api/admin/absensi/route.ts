@@ -38,13 +38,17 @@ export async function GET(request: NextRequest) {
       include: { izin: true },
     });
 
-    // ponytail: check izin status — approved / pending, but never auto-set student status
+    // ponytail: izin via tanggal — PENDING jangan set status, biarkan BELUM
     const allIzin = await prisma.izin.findMany({
-      where: { siswaId: { in: studentIds }, kehadiran: { tanggal: targetDate } },
+      where: { siswaId: { in: studentIds }, tanggal: targetDate },
       select: { siswaId: true, statusApproval: true },
     });
+    const pendingSet = new Set<string>();
     const izinStatus = new Map<string, string>();
-    for (const i of allIzin) izinStatus.set(i.siswaId, i.statusApproval);
+    for (const i of allIzin) {
+      if (i.statusApproval === 'PENDING') pendingSet.add(i.siswaId);
+      else izinStatus.set(i.siswaId, i.statusApproval);
+    }
 
     const result = students.map((siswa) => {
       const khd = kehadiran.find((k) => k.siswaId === siswa.id);
@@ -52,7 +56,7 @@ export async function GET(request: NextRequest) {
       return {
         id: siswa.id, nis: siswa.nis, nama: siswa.nama, whatsappOrangTua: siswa.whatsappOrangTua,
         status: khd?.status || 'BELUM', alasan: khd?.izin?.alasan || '', buktiUrl: khd?.izin?.buktiFoto || '',
-        izinAuto: false, hasPending: izinSt === 'PENDING',
+        izinAuto: false, hasPending: pendingSet.has(siswa.id),
         hasApprovedIzin: izinSt === 'APPROVED',
       };
     });
@@ -134,6 +138,8 @@ export async function POST(request: NextRequest) {
               alasan: alasan || '',
               buktiFoto: buktiUrl || '',
               statusApproval: 'PENDING',
+              tanggal: targetDate,
+              tipe: status,
             },
           });
         }

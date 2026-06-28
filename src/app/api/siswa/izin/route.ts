@@ -45,33 +45,15 @@ export async function POST(request: NextRequest) {
     const buktiFotoUrl = `/api/uploads/${fileName}`;
     const parsedDate = new Date(tanggal);
 
-    // Buat record Izin
-    const izin = await prisma.izin.create({
+    // Buat record Izin — jangan bikin Kehadiran, nunggu approval dulu
+    await prisma.izin.create({
       data: {
         alasan,
         buktiFoto: buktiFotoUrl,
         statusApproval: 'PENDING',
         siswaId: session.userId,
-      },
-    });
-
-    // Upsert record Kehadiran (Update jika sudah ada, create jika belum)
-    await prisma.kehadiran.upsert({
-      where: {
-        siswaId_tanggal: {
-          siswaId: session.userId,
-          tanggal: parsedDate,
-        },
-      },
-      update: {
-        status: tipe,
-        izinId: izin.id,
-      },
-      create: {
         tanggal: parsedDate,
-        status: tipe,
-        siswaId: session.userId,
-        izinId: izin.id,
+        tipe,
       },
     });
 

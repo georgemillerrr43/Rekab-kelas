@@ -350,7 +350,16 @@ export default function ManagementPage() {
             </div>
             <div className="p-6">
               {kelasList.length === 0 && !kelasLoading ? (
-                <div className="text-center py-10 text-[var(--text-muted)] text-sm">Belum ada kelas.</div>
+                <div className="text-center py-12">
+                  <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--bg-glass)] flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--text-muted)" className="w-7 h-7"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" /></svg>
+                  </div>
+                  <p className="text-[var(--text-muted)] text-sm mb-4">Belum ada kelas. Buat kelas baru untuk memulai.</p>
+                  <button onClick={() => setShowAddKelas(true)} className="btn-primary px-5 py-2.5 text-sm font-bold inline-flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    Buat Kelas Baru
+                  </button>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-enter">
                   {kelasList.map((k) => (

@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
       nis: item.siswa.nis,
       nama: item.siswa.nama,
       kelas: item.siswa.kelas.nama,
-      tanggal: item.kehadiran?.tanggal.toISOString().split('T')[0] || item.createdAt.toISOString().split('T')[0],
-      tipe: item.kehadiran?.status || 'IZIN',
+      tanggal: item.tanggal?.toISOString?.()?.split('T')[0] || item.createdAt.toISOString().split('T')[0],
+      tipe: item.tipe || item.kehadiran?.status || 'IZIN',
       alasan: item.alasan,
       buktiFoto: item.buktiFoto,
       status: item.statusApproval,
@@ -78,35 +78,45 @@ export async function POST(request: NextRequest) {
       data: { statusApproval: status },
     });
 
-    if (targetIzin.kehadiran) {
-      if (status === 'REJECTED') {
+    const tanggal = targetIzin.tanggal || new Date();
+    if (status === 'APPROVED') {
+      // Izin disetujui → bikin/update Kehadiran sesuai tipe
+      await prisma.kehadiran.upsert({
+        where: { siswaId_tanggal: { siswaId: targetIzin.siswaId, tanggal } },
+        update: { status: (targetIzin.tipe as any) || 'IZIN', izinId: id },
+        create: { siswaId: targetIzin.siswaId, tanggal, status: (targetIzin.tipe as any) || 'IZIN', izinId: id },
+      });
+
+      await sendWhatsAppNotification({
+        namaSiswa: targetIzin.siswa.nama,
+        nis: targetIzin.siswa.nis,
+        tanggal: tanggal.toISOString().split('T')[0],
+        status: (targetIzin.tipe as 'IZIN' | 'SAKIT') || 'IZIN',
+        whatsappOrangTua: targetIzin.siswa.whatsappOrangTua,
+        alasan: targetIzin.alasan,
+      });
+    } else {
+      // Izin ditolak → Kehadiran status ALPA
+      if (targetIzin.kehadiran) {
         await prisma.kehadiran.update({
           where: { id: targetIzin.kehadiran.id },
           data: { status: 'ALPA', izinId: null },
         });
-
-        await sendWhatsAppNotification({
-          namaSiswa: targetIzin.siswa.nama,
-          nis: targetIzin.siswa.nis,
-          tanggal: targetIzin.kehadiran.tanggal.toISOString().split('T')[0],
-          status: 'ALPA',
-          whatsappOrangTua: targetIzin.siswa.whatsappOrangTua,
-        });
       } else {
-        await prisma.kehadiran.update({
-          where: { id: targetIzin.kehadiran.id },
-          data: { status: targetIzin.kehadiran.status },
-        });
-
-        await sendWhatsAppNotification({
-          namaSiswa: targetIzin.siswa.nama,
-          nis: targetIzin.siswa.nis,
-          tanggal: targetIzin.kehadiran.tanggal.toISOString().split('T')[0],
-          status: targetIzin.kehadiran.status,
-          whatsappOrangTua: targetIzin.siswa.whatsappOrangTua,
-          alasan: targetIzin.alasan,
+        await prisma.kehadiran.upsert({
+          where: { siswaId_tanggal: { siswaId: targetIzin.siswaId, tanggal } },
+          update: { status: 'ALPA' },
+          create: { siswaId: targetIzin.siswaId, tanggal, status: 'ALPA' },
         });
       }
+
+      await sendWhatsAppNotification({
+        namaSiswa: targetIzin.siswa.nama,
+        nis: targetIzin.siswa.nis,
+        tanggal: tanggal.toISOString().split('T')[0],
+        status: 'ALPA',
+        whatsappOrangTua: targetIzin.siswa.whatsappOrangTua,
+      });
     }
 
     return NextResponse.json({ success: true });
