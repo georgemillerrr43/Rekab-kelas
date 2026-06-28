@@ -4,27 +4,33 @@
 
 ## Alur Sistem (3 Peran)
 
-```
-                    ┌─────────────────────────┐
-                    │         SISWA           │
-                    │  (Mengajukan Izin/Sakit) │
-                    └──────────┬──────────────┘
-                               │ Ajukan izin/sakit
-                               │ dengan foto bukti
-                               ▼
-                    ┌─────────────────────────┐
-                    │    GURU / WALI KELAS     │
-                    │  (Merekam Absensi Harian │
-                    │   & Menyetujui Izin)     │
-                    └──────────┬──────────────┘
-                               │ Kelola data master
-                               │ & pantau seluruh kelas
-                               ▼
-                    ┌─────────────────────────┐
-                    │         ADMIN           │
-                    │  (Manajemen Pengguna &   │
-                    │   Pengawasan)            │
-                    └─────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph SISWA["Siswa"]
+        A1[Mengajukan Izin/Sakit]
+        A2[Upload Foto Bukti]
+        A3[Lihat Rekap Sendiri]
+    end
+
+    subgraph GURU["Guru / Wali Kelas"]
+        B1[Catat Absensi Harian]
+        B2[Setujui/Tolak Izin]
+        B3[Unduh Rekap PDF]
+    end
+
+    subgraph ADMIN["Admin"]
+        C1[Kelola Data Kelas]
+        C2[Kelola Guru & Siswa]
+        C3[Pantau Semua Kelas]
+    end
+
+    A1 -->|Ajukan izin| B2
+    A2 --> B2
+    A3 --> B3
+    B1 --> C3
+    B2 -->|Approved/Rejected| A1
+    C1 --> B1
+    C2 --> B1
 ```
 
 | Peran | Tugas Utama |
@@ -34,6 +40,25 @@
 | **Admin** | Kelola data kelas, guru, dan siswa; pantau seluruh kelas |
 
 ### Alur Lengkap
+
+```mermaid
+sequenceDiagram
+    participant A as Admin
+    participant G as Guru
+    participant S as Siswa
+    participant DB as Database
+
+    A->>DB: Buat Kelas
+    A->>DB: Buat Akun Guru
+    A->>DB: Buat Data Siswa
+    S->>DB: Login (NIS)
+    S->>DB: Ajukan Izin/Sakit + Foto
+    G->>DB: Login
+    G->>DB: Catat Absensi Harian
+    G->>DB: Setujui/Tolak Izin
+    G-->>S: Status Approval
+    Note over A,G,S: Semua role bisa unduh rekap PDF
+```
 
 1. **Admin** login dan membuat data master: **Kelas** → **Guru** (Wali Kelas) → **Siswa**
 2. **Siswa** login dengan NIS, bisa mengajukan **Izin** atau **Sakit** dengan mengisi alasan dan upload foto bukti
@@ -50,9 +75,25 @@
 - **Approval izin**: Guru setujui/tolak izin dengan verifikasi foto
 - **Rekap PDF**: Unduh laporan bulanan atau harian dalam format PDF
 - **Statistik visual**: Grafik dan ringkasan kehadiran di dashboard
-- **Simulasi notifikasi WhatsApp**: Output log untuk notifikasi orang tua jika siswa alpa
+- **Notifikasi WhatsApp otomatis**: Kirim pemberitahuan ke orang tua jika siswa alpa, izin, atau sakit
 - **Responsive**: Bisa dipakai dari HP maupun laptop
 - **Dark/Light mode**: Tersedia kedua tema
+
+## Notifikasi WhatsApp
+
+Sistem otomatis mengirim notifikasi WhatsApp ke nomor orang tua siswa dalam situasi berikut:
+
+| Situasi | Dikirim ke | Trigger |
+|---------|-----------|---------|
+| Siswa **Alpa** | Orang tua | Saat guru/admin mencatat kehadiran "Alpa" |
+| **Izin/Sakit** diajukan siswa | Orang tua | Saat guru menyetujui atau menolak izin |
+| Izin/Sakit dicatat guru langsung | Orang tua | Saat guru mencatat absensi dengan status Izin/Sakit |
+
+Teknisnya:
+- Menggunakan **API Fonnte** (`WA_API_TOKEN` + `WA_GATEWAY_URL` di `.env`)
+- Nomor orang tua disimpan di data siswa (`whatsappOrangTua`)
+- Format nomor harus diawali kode negara `62` (Indonesia)
+- Simulasi: jika `WA_API_TOKEN` belum diisi, notifikasi hanya muncul di console.log
 
 ## Tutorial Instalasi
 
@@ -194,3 +235,4 @@ rekabkelas/
 | Auth | Session-based (AES-256-CBC encrypted cookie) |
 | PDF | jsPDF + jspdf-autotable |
 | Upload | Server file system |
+| Notifikasi WA | Fonnte API (simulasi: console.log) |
