@@ -5,65 +5,62 @@ import { useRouter } from 'next/navigation';
 
 interface KelasItem { id: string; nama: string; waliKelas: string; _count: { siswa: number }; }
 interface SiswaItem { id: string; nis: string; nama: string; username: string; whatsappOrangTua: string; kelasId: string; kelas: { id: string; nama: string; waliKelas: string }; }
-
 type TabType = 'kelas' | 'guru' | 'siswa';
 
-// -- Modal Component --
 function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
     return () => { document.body.style.overflow = ''; };
   }, [open]);
-
   if (!open) return null;
-
   return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
-          <h3 className="font-bold text-[var(--text-primary)] text-base">{title}</h3>
-          <button onClick={onClose} className="btn-ghost w-8 h-8 rounded-[var(--radius-pill)] grid place-items-center shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-        <div className="px-6 py-5">
-          {children}
+    <>
+      <div className="modal-backdrop" />
+      <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+        <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
+            <h3 className="font-bold text-[var(--text-primary)] text-base">{title}</h3>
+            <button onClick={onClose} className="btn-ghost w-8 h-8 rounded-[var(--radius-pill)] grid place-items-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <div className="px-6 py-5">{children}</div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
-// -- Confirm Modal --
 function ConfirmModal({ open, title, message, confirmLabel, loading, onConfirm, onCancel }: {
   open: boolean; title: string; message: string; confirmLabel: string; loading?: boolean; onConfirm: () => void; onCancel: () => void;
 }) {
   if (!open) return null;
   return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
-      <div className="modal-panel max-w-sm" onClick={(e) => e.stopPropagation()}>
-        <div className="px-6 py-6 text-center">
-          <div className="w-12 h-12 rounded-full bg-[rgba(239,68,68,0.12)] flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bearish)" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-          </div>
-          <h3 className="font-bold text-[var(--text-primary)] text-base mb-2">{title}</h3>
-          <p className="text-sm text-[var(--text-secondary)] mb-6">{message}</p>
-          <div className="flex gap-3 justify-center">
-            <button onClick={onCancel} className="btn btn-secondary px-5 py-2 text-sm">Batal</button>
-            <button onClick={onConfirm} disabled={loading} className="px-5 py-2 text-sm font-bold rounded-[var(--radius-pill)] bg-[var(--bearish)] text-white hover:opacity-90 transition-all disabled:opacity-40">{loading ? 'Memproses...' : confirmLabel}</button>
+    <>
+      <div className="modal-backdrop" />
+      <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+        <div className="modal-panel max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="px-6 py-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-[rgba(239,68,68,0.12)] flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bearish)" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+            </div>
+            <h3 className="font-bold text-[var(--text-primary)] text-base mb-2">{title}</h3>
+            <p className="text-sm text-[var(--text-secondary)] mb-6">{message}</p>
+            <div className="flex gap-3 justify-center">
+              <button onClick={onCancel} className="btn btn-secondary px-5 py-2 text-sm">Batal</button>
+              <button onClick={onConfirm} disabled={loading} className="px-5 py-2 text-sm font-bold rounded-[var(--radius-pill)] bg-[var(--bearish)] text-white hover:opacity-90 transition-all disabled:opacity-40">{loading ? 'Memproses...' : confirmLabel}</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
 export default function ManagementPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('kelas');
-
-  // Kelas state
   const [kelasList, setKelasList] = useState<KelasItem[]>([]);
   const [kelasLoading, setKelasLoading] = useState(false);
   const [showAddKelas, setShowAddKelas] = useState(false);
@@ -79,13 +76,9 @@ export default function ManagementPage() {
   const [editLoading, setEditLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; nama: string; type: 'kelas' | 'guru' | 'siswa' } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
-  // Guru state
   const [guruList, setGuruList] = useState<any[]>([]);
   const [guruLoading, setGuruLoading] = useState(false);
   const [guruMsg, setGuruMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  // Siswa state
   const [siswaList, setSiswaList] = useState<SiswaItem[]>([]);
   const [siswaLoading, setSiswaLoading] = useState(false);
   const [showAddSiswa, setShowAddSiswa] = useState(false);
@@ -139,6 +132,22 @@ export default function ManagementPage() {
     setAddKelasLoading(false); setTimeout(() => setKelasMsg(null), 5000);
   };
 
+  const startEditKelas = (k: { id: string; nama: string; waliKelas: string }) => {
+    setEditKelas(k); setEditKNama(k.nama); setEditWKelas(k.waliKelas);
+  };
+
+  const handleEditKelas = async (e: React.FormEvent) => {
+    e.preventDefault(); setEditLoading(true); setKelasMsg(null);
+    const res = await fetch('/api/admin/kelas', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: editKelas!.id, nama: editKNama, waliKelas: editWKelas }),
+    });
+    const data = await res.json();
+    if (!res.ok) setKelasMsg({ type: 'error', text: data.error });
+    else { setKelasMsg({ type: 'success', text: `Kelas "${editKNama}" berhasil diperbarui!` }); setEditKelas(null); fetchKelas(); }
+    setEditLoading(false); setTimeout(() => setKelasMsg(null), 5000);
+  };
+
   const handleDeleteKelas = async () => {
     if (!deleteTarget) return;
     setDeleteLoading(true);
@@ -166,22 +175,6 @@ export default function ManagementPage() {
     setDeleteLoading(false); setDeleteTarget(null); setTimeout(() => setSiswaMsg(null), 4000);
   };
 
-  const startEditKelas = (k: { id: string; nama: string; waliKelas: string }) => {
-    setEditKelas(k); setEditKNama(k.nama); setEditWKelas(k.waliKelas);
-  };
-
-  const handleEditKelas = async (e: React.FormEvent) => {
-    e.preventDefault(); setEditLoading(true); setKelasMsg(null);
-    const res = await fetch('/api/admin/kelas', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: editKelas!.id, nama: editKNama, waliKelas: editWKelas }),
-    });
-    const data = await res.json();
-    if (!res.ok) setKelasMsg({ type: 'error', text: data.error });
-    else { setKelasMsg({ type: 'success', text: `Kelas "${editKNama}" berhasil diperbarui!` }); setEditKelas(null); fetchKelas(); }
-    setEditLoading(false); setTimeout(() => setKelasMsg(null), 5000);
-  };
-
   const handleAddSiswa = async (e: React.FormEvent) => {
     e.preventDefault(); setAddSiswaLoading(true); setSiswaMsg(null);
     const res = await fetch('/api/admin/siswa', {
@@ -206,29 +199,53 @@ export default function ManagementPage() {
 
       <div className="tab-switcher animate-fade-in">
         {(['kelas', 'guru', 'siswa'] as const).map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={activeTab === tab ? 'active' : ''}>
-            {tab === 'kelas' ? 'Kelas' : tab === 'guru' ? 'Guru' : 'Siswa'}
-          </button>
+          <button key={tab} onClick={() => setActiveTab(tab)} className={activeTab === tab ? 'active' : ''}>{tab === 'kelas' ? 'Kelas' : tab === 'guru' ? 'Guru' : 'Siswa'}</button>
         ))}
       </div>
 
-      {/* ======== KELAS TAB ======== */}
       {activeTab === 'kelas' && (
         <div className="space-y-5 animate-fade-in">
           <div className="glass-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-[var(--text-primary)]">Manajemen Kelas</h2>
-              <p className="text-[var(--text-muted)] text-xs mt-0.5">Tambahkan kelas baru dengan nama guru / wali kelas.</p>
-            </div>
+            <div><h2 className="text-lg font-bold text-[var(--text-primary)]">Manajemen Kelas</h2><p className="text-[var(--text-muted)] text-xs mt-0.5">Tambahkan kelas baru dengan nama guru / wali kelas.</p></div>
             <button onClick={() => setShowAddKelas(true)} className="btn-primary px-5 py-2.5 text-sm font-bold">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-              Tambah Kelas
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Kelas
             </button>
           </div>
 
-          {kelasMsg && (
-            <div className={`p-4 rounded-[var(--radius-input)] text-sm font-semibold border animate-slide-down ${kelasMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{kelasMsg.text}</div>
-          )}
+          {kelasMsg && <div className={`p-4 rounded-[var(--radius-input)] text-sm font-semibold border animate-slide-down ${kelasMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{kelasMsg.text}</div>}
+
+          <Modal open={showAddKelas} onClose={() => setShowAddKelas(false)} title="Tambah Kelas Baru">
+            <form onSubmit={handleAddKelas} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama Kelas *</label><input type="text" value={newKNama} onChange={(e) => setNewKNama(e.target.value)} required placeholder="XI-RPL-1" className="glass-input w-full p-2.5 text-sm" /></div>
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Wali Kelas *</label><input type="text" value={newWKelas} onChange={(e) => setNewWKelas(e.target.value)} required placeholder="Budi Santoso, S.Pd" className="glass-input w-full p-2.5 text-sm" /></div>
+              </div>
+              <div className="border-t border-[var(--border-subtle)] pt-3">
+                <p className="text-xs font-semibold text-[var(--brand)] mb-3">Akun Guru (opsional)</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Username Guru</label><input type="text" value={guruUsername} onChange={(e) => setGuruUsername(e.target.value)} placeholder="guru_xirpl1" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
+                  <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Password Guru</label><input type="text" value={guruPassword} onChange={(e) => setGuruPassword(e.target.value)} placeholder="min 6 karakter" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end pt-2 border-t border-[var(--border-subtle)]">
+                <button type="button" onClick={() => setShowAddKelas(false)} className="btn btn-secondary px-4 py-2 text-sm">Batal</button>
+                <button type="submit" disabled={addKelasLoading} className="btn-primary px-6 py-2 text-sm">{addKelasLoading ? 'Menyimpan...' : 'Simpan'}</button>
+              </div>
+            </form>
+          </Modal>
+
+          <Modal open={editKelas !== null} onClose={() => setEditKelas(null)} title="Edit Kelas">
+            <form onSubmit={handleEditKelas} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama Kelas *</label><input type="text" value={editKNama} onChange={(e) => setEditKNama(e.target.value)} required className="glass-input w-full p-2.5 text-sm" /></div>
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Wali Kelas *</label><input type="text" value={editWKelas} onChange={(e) => setEditWKelas(e.target.value)} required className="glass-input w-full p-2.5 text-sm" /></div>
+              </div>
+              <div className="flex gap-3 justify-end pt-2 border-t border-[var(--border-subtle)]">
+                <button type="button" onClick={() => setEditKelas(null)} className="btn btn-secondary px-4 py-2 text-sm">Batal</button>
+                <button type="submit" disabled={editLoading} className="btn-primary px-6 py-2 text-sm">{editLoading ? 'Menyimpan...' : 'Simpan'}</button>
+              </div>
+            </form>
+          </Modal>
 
           <div className="glass-card">
             <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
@@ -265,13 +282,12 @@ export default function ManagementPage() {
         </div>
       )}
 
-      {/* ======== GURU TAB ======== */}
       {activeTab === 'guru' && (
         <div className="space-y-5 animate-fade-in">
           <div className="glass-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div><h2 className="text-lg font-bold text-[var(--text-primary)]">Manajemen Akun Guru</h2><p className="text-[var(--text-muted)] text-xs mt-0.5">Lihat dan hapus akun guru.</p></div>
           </div>
-          {guruMsg && (<div className={`p-4 rounded-[var(--radius-input)] text-sm font-semibold border animate-slide-down ${guruMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{guruMsg.text}</div>)}
+          {guruMsg && <div className={`p-4 rounded-[var(--radius-input)] text-sm font-semibold border animate-slide-down ${guruMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{guruMsg.text}</div>}
           <div className="glass-card overflow-hidden">
             <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
               <h3 className="font-bold text-[var(--text-primary)]">Daftar Guru ({guruList.length})</h3>
@@ -297,7 +313,6 @@ export default function ManagementPage() {
         </div>
       )}
 
-      {/* ======== SISWA TAB ======== */}
       {activeTab === 'siswa' && (
         <div className="space-y-5 animate-fade-in">
           <div className="glass-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -315,9 +330,24 @@ export default function ManagementPage() {
             </select>
           </div>
 
-          {siswaMsg && (
-            <div className={`p-4 rounded-[var(--radius-input)] text-sm font-semibold border animate-slide-down ${siswaMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{siswaMsg.text}</div>
-          )}
+          {siswaMsg && <div className={`p-4 rounded-[var(--radius-input)] text-sm font-semibold border animate-slide-down ${siswaMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{siswaMsg.text}</div>}
+
+          <Modal open={showAddSiswa} onClose={() => setShowAddSiswa(false)} title="Tambah Akun Siswa Baru">
+            <form onSubmit={handleAddSiswa} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">NIS *</label><input type="text" value={fNis} onChange={(e) => setFNis(e.target.value)} required placeholder="10011" className="glass-input w-full p-2.5 text-sm" /></div>
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama *</label><input type="text" value={fNama} onChange={(e) => setFNama(e.target.value)} required placeholder="Ahmad Fauzan" className="glass-input w-full p-2.5 text-sm" /></div>
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Kelas *</label><select value={fKelasId} onChange={(e) => setFKelasId(e.target.value)} required className="glass-select w-full p-2.5 text-sm"><option value="">Pilih</option>{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Username *</label><input type="text" value={fUsername} onChange={(e) => setFUsername(e.target.value)} required placeholder="10011" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Password *</label><input type="text" value={fPassword} onChange={(e) => setFPassword(e.target.value)} required minLength={6} placeholder="siswa123" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
+                <div className="md:col-span-2"><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">WA Ortu (628xxx)</label><input type="text" value={fWa} onChange={(e) => setFWa(e.target.value)} placeholder="6281234567890" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
+              </div>
+              <div className="flex gap-3 justify-end pt-2 border-t border-[var(--border-subtle)]">
+                <button type="button" onClick={() => setShowAddSiswa(false)} className="btn btn-secondary px-4 py-2 text-sm">Batal</button>
+                <button type="submit" disabled={addSiswaLoading} className="btn-primary px-6 py-2 text-sm">{addSiswaLoading ? 'Menyimpan...' : 'Simpan'}</button>
+              </div>
+            </form>
+          </Modal>
 
           <div className="glass-card overflow-hidden">
             <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
@@ -347,62 +377,6 @@ export default function ManagementPage() {
         </div>
       )}
 
-      {/* ======== MODALS ======== */}
-
-      {/* Add Kelas Modal */}
-      <Modal open={showAddKelas} onClose={() => setShowAddKelas(false)} title="Tambah Kelas Baru">
-        <form onSubmit={handleAddKelas} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama Kelas *</label><input type="text" value={newKNama} onChange={(e) => setNewKNama(e.target.value)} required placeholder="XI-RPL-1" className="glass-input w-full p-2.5 text-sm" /></div>
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Wali Kelas *</label><input type="text" value={newWKelas} onChange={(e) => setNewWKelas(e.target.value)} required placeholder="Budi Santoso, S.Pd" className="glass-input w-full p-2.5 text-sm" /></div>
-          </div>
-          <div className="border-t border-[var(--border-subtle)] pt-3">
-            <p className="text-xs font-semibold text-[var(--brand)] mb-3">Akun Guru (opsional)</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Username Guru</label><input type="text" value={guruUsername} onChange={(e) => setGuruUsername(e.target.value)} placeholder="guru_xirpl1" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
-              <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Password Guru</label><input type="text" value={guruPassword} onChange={(e) => setGuruPassword(e.target.value)} placeholder="min 6 karakter" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end pt-2 border-t border-[var(--border-subtle)]">
-            <button type="button" onClick={() => setShowAddKelas(false)} className="btn btn-secondary px-4 py-2 text-sm">Batal</button>
-            <button type="submit" disabled={addKelasLoading} className="btn-primary px-6 py-2 text-sm">{addKelasLoading ? 'Menyimpan...' : 'Simpan'}</button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Edit Kelas Modal */}
-      <Modal open={editKelas !== null} onClose={() => setEditKelas(null)} title="Edit Kelas">
-        <form onSubmit={handleEditKelas} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama Kelas *</label><input type="text" value={editKNama} onChange={(e) => setEditKNama(e.target.value)} required className="glass-input w-full p-2.5 text-sm" /></div>
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Wali Kelas *</label><input type="text" value={editWKelas} onChange={(e) => setEditWKelas(e.target.value)} required className="glass-input w-full p-2.5 text-sm" /></div>
-          </div>
-          <div className="flex gap-3 justify-end pt-2 border-t border-[var(--border-subtle)]">
-            <button type="button" onClick={() => setEditKelas(null)} className="btn btn-secondary px-4 py-2 text-sm">Batal</button>
-            <button type="submit" disabled={editLoading} className="btn-primary px-6 py-2 text-sm">{editLoading ? 'Menyimpan...' : 'Simpan'}</button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Add Siswa Modal */}
-      <Modal open={showAddSiswa} onClose={() => setShowAddSiswa(false)} title="Tambah Akun Siswa Baru">
-        <form onSubmit={handleAddSiswa} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">NIS *</label><input type="text" value={fNis} onChange={(e) => setFNis(e.target.value)} required placeholder="10011" className="glass-input w-full p-2.5 text-sm" /></div>
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama *</label><input type="text" value={fNama} onChange={(e) => setFNama(e.target.value)} required placeholder="Ahmad Fauzan" className="glass-input w-full p-2.5 text-sm" /></div>
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Kelas *</label><select value={fKelasId} onChange={(e) => setFKelasId(e.target.value)} required className="glass-select w-full p-2.5 text-sm"><option value="">Pilih</option>{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Username *</label><input type="text" value={fUsername} onChange={(e) => setFUsername(e.target.value)} required placeholder="10011" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
-            <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Password *</label><input type="text" value={fPassword} onChange={(e) => setFPassword(e.target.value)} required minLength={6} placeholder="siswa123" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
-            <div className="md:col-span-2"><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">WA Ortu (628xxx)</label><input type="text" value={fWa} onChange={(e) => setFWa(e.target.value)} placeholder="6281234567890" className="glass-input w-full p-2.5 text-sm font-mono" /></div>
-          </div>
-          <div className="flex gap-3 justify-end pt-2 border-t border-[var(--border-subtle)]">
-            <button type="button" onClick={() => setShowAddSiswa(false)} className="btn btn-secondary px-4 py-2 text-sm">Batal</button>
-            <button type="submit" disabled={addSiswaLoading} className="btn-primary px-6 py-2 text-sm">{addSiswaLoading ? 'Menyimpan...' : 'Simpan'}</button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Delete Confirm Modal — routes to correct handler based on type */}
       <ConfirmModal
         open={deleteTarget !== null}
         title="Konfirmasi Hapus"
