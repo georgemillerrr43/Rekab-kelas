@@ -46,6 +46,7 @@ export default function Header() {
         { href: '/approval', label: 'Approval' },
         { href: '/rekap', label: 'Rekap' },
         { href: '/manajemen', label: 'Manajemen' },
+        { href: '/profile', label: 'Profile' },
       ];
     } else if (session.role === 'GURU') {
       navLinks = [
