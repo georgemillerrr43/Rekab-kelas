@@ -96,15 +96,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await sendWhatsAppNotification({
-      namaSiswa: izin.siswa.nama,
-      nis: izin.siswa.nis,
-      tanggal: tanggal.toISOString().split('T')[0],
-      status: status === 'APPROVED' ? ((izin.tipe as 'IZIN' | 'SAKIT') || 'IZIN') : 'ALPA',
-      whatsappOrangTua: izin.siswa.whatsappOrangTua,
-      alasan: `Pengajuan izin ${status === 'APPROVED' ? 'disetujui' : 'ditolak'} oleh wali kelas.`,
-    });
-
     return NextResponse.json({ success: true });
   } catch (e) {
     console.error('POST /api/teacher/approval:', e);

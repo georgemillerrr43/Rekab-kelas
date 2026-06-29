@@ -75,19 +75,19 @@ sequenceDiagram
 - **Approval izin**: Guru setujui/tolak izin dengan verifikasi foto
 - **Rekap PDF**: Unduh laporan bulanan atau harian dalam format PDF
 - **Statistik visual**: Grafik dan ringkasan kehadiran di dashboard
-- **Notifikasi WhatsApp otomatis**: Kirim pemberitahuan ke orang tua jika siswa alpa, izin, atau sakit
+- **Notifikasi WhatsApp otomatis**: Kirim pemberitahuan ke orang tua saat guru mencatat absensi (Alpa / Izin / Sakit)
+- **Ganti Username**: Setiap user bisa mengubah username sendiri di halaman pengaturan
 - **Responsive**: Bisa dipakai dari HP maupun laptop
 - **Dark/Light mode**: Tersedia kedua tema
 
 ## Notifikasi WhatsApp
 
-Sistem otomatis mengirim notifikasi WhatsApp ke nomor orang tua siswa dalam situasi berikut:
+Sistem otomatis mengirim notifikasi WhatsApp ke nomor orang tua siswa saat pencatatan absensi:
 
 | Situasi | Dikirim ke | Trigger |
 |---------|-----------|---------|
-| Siswa **Alpa** | Orang tua | Saat guru/admin mencatat kehadiran "Alpa" |
-| **Izin/Sakit** diajukan siswa | Orang tua | Saat guru menyetujui atau menolak izin |
-| Izin/Sakit dicatat guru langsung | Orang tua | Saat guru mencatat absensi dengan status Izin/Sakit |
+| Siswa **Alpa** | Orang tua | Guru/admin mencatat kehadiran "Alpa" |
+| **Izin/Sakit** | Orang tua | Guru/admin mencatat absensi Izin atau Sakit |
 
 ### Setup WA Gateway (Fonnte)
 
@@ -144,7 +144,11 @@ npm install
 ### 4. Migrasi Database & Seed Data Awal
 
 ```bash
+# Untuk development (membuat database baru)
 npx prisma migrate dev --name init
+
+# Untuk production server (tidak perlu shadow database)
+npx prisma db push
 npx prisma db seed
 ```
 
@@ -153,8 +157,10 @@ Perintah di atas akan membuat tabel-tabel database dan mengisi data awal:
 | Akun | Username | Password | Role |
 |------|----------|----------|------|
 | Admin | `admin` | `admin123` | Admin |
-| Siswa | `10001` (NIS) | `siswa123` | Siswa |
-| *(Guru belum di-seed — buat lewat panel Admin)* | | |
+| Guru XI-RPL-1 | `budixirpl1` | `guru123` | Guru |
+| Guru XI-RPL-2 | `sitinurhaliza` | `guru123` | Guru |
+| Guru XII-RPL-1 | `ahmadwijaya` | `guru123` | Guru |
+| Siswa (10 akun) | `10001` - `10010` | `siswa123` | Siswa |
 
 ### 5. Jalankan Aplikasi
 
