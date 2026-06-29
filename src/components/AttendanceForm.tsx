@@ -27,7 +27,7 @@ function AttendanceFormInner() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/admin/kelas');
+        const res = await fetch('/api/admin/classes');
         const list = (await res.json()).kelas || [];
         setKelasList(list);
         if (list.length > 0 && !kelas) setKelas(list[0].id);
@@ -40,7 +40,7 @@ function AttendanceFormInner() {
     (async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/admin/absensi?kelas=${kelas}&tanggal=${tanggal}`);
+        const res = await fetch(`/api/admin/attendance?kelas=${kelas}&tanggal=${tanggal}`);
         const data = await res.json();
         const studentList = data.students || [];
         setStudents(studentList);
@@ -88,7 +88,7 @@ function AttendanceFormInner() {
     }
     if (hasErr) { setAttendance({ ...attendance }); setSubmitMessage({ type: 'error', text: 'Lengkapi alasan dan bukti untuk Izin/Sakit.' }); setIsSubmitting(false); return; }
     try {
-      const res = await fetch('/api/admin/absensi', {
+      const res = await fetch('/api/admin/attendance', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tanggal, data: Object.values(attendance).map((i) => ({ siswaId: i.siswaId, status: i.status, alasan: i.alasan, buktiUrl: i.buktiUrl })) }),
       });
@@ -141,7 +141,7 @@ function AttendanceFormInner() {
             </div>
             <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">Belum Ada Kelas</h3>
             <p className="text-[var(--text-muted)] text-sm mb-8 max-w-xs mx-auto">Buat kelas terlebih dahulu sebelum mengisi absensi.</p>
-            <button type="button" onClick={() => router.push('/manajemen')} className="btn-primary px-6 py-2.5 text-sm font-semibold inline-flex items-center gap-2">
+            <button type="button" onClick={() => router.push('/management')} className="btn-primary px-6 py-2.5 text-sm font-semibold inline-flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               Tambah Kelas
             </button>
@@ -183,7 +183,7 @@ function AttendanceFormInner() {
           <p className="text-[var(--text-muted)] text-base mb-8 font-medium">Kelas <span className="text-[var(--text-primary)] font-semibold">{kelas.replace(/-/g, ' ')}</span> - {tanggal}</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button type="button" onClick={() => setIsSuccess(false)} className="btn btn-secondary px-6 py-2.5 text-sm font-bold">Kembali Edit</button>
-            <a href="/rekap" className="btn-primary px-6 py-2.5 text-sm font-bold">Lihat Rekap</a>
+            <a href="/recap" className="btn-primary px-6 py-2.5 text-sm font-bold">Lihat Rekap</a>
           </div>
         </div>
       ) : (

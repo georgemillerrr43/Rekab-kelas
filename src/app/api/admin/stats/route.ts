@@ -6,7 +6,7 @@ import { getSession } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   const session = getSession(request);
   if (!session || session.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
   }
 
   try {
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       avgAttendance, todayStats, pendingIzinCount, totalStudents, topAbsentees, distribution, perKelas,
     });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('GET /api/admin/stats:', error);
+    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
   }
 }

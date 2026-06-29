@@ -7,7 +7,7 @@ import { sendWhatsAppNotification } from '@/utils/waNotification';
 export async function GET(request: NextRequest) {
   const session = getSession(request);
   if (!session || session.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
   }
 
   try {
@@ -46,20 +46,20 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ requests: result });
   } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   const session = getSession(request);
   if (!session || session.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
   }
 
   try {
     const { id, status } = await request.json();
     if (!id || !status || (status !== 'APPROVED' && status !== 'REJECTED')) {
-      return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+      return NextResponse.json({ error: 'Data tidak valid' }, { status: 400 });
     }
 
     const targetIzin = await prisma.izin.findUnique({
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!targetIzin) {
-      return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+      return NextResponse.json({ error: 'Data tidak ditemukan' }, { status: 404 });
     }
 
     await prisma.izin.update({
@@ -122,6 +122,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
   }
 }

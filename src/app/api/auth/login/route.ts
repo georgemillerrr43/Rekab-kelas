@@ -101,11 +101,10 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    return NextResponse.json({ error: 'Username atau Password salah!' }, { status: 401 });
-  } catch (error: any) {
-    console.error('Error login API:', error);
+    return NextResponse.json({ error: 'Username atau password salah!' }, { status: 401 });
+  } catch {
     return NextResponse.json(
-      { error: 'Terjadi kesalahan sistem saat memproses login.' },
+      { error: 'Terjadi kesalahan pada server. Silakan coba lagi.' },
       { status: 500 }
     );
   }

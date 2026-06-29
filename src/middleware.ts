@@ -14,18 +14,13 @@ export function middleware(request: NextRequest) {
     pathname === '/favicon.svg' ||
     pathname.startsWith('/uploads') ||
     pathname.startsWith('/api/uploads') ||
-    pathname.startsWith('/api/rekap') ||
-    pathname.startsWith('/api/kelas')
+    pathname.startsWith('/api/recap') ||
+    pathname.startsWith('/api/classes')
   ) {
     return NextResponse.next();
   }
 
-  // Public recap routes
-  if (pathname === '/rekap' || pathname.startsWith('/rekap/')) {
-    return NextResponse.next();
-  }
-
-  const publicRoutes = ['/rekap', '/rekap/public', '/rekap/public/'];
+  const publicRoutes = ['/recap', '/recap/public', '/recap/public/'];
   if (publicRoutes.some(r => pathname === r || pathname.startsWith(r + '/'))) {
     return NextResponse.next();
   }
@@ -43,8 +38,8 @@ export function middleware(request: NextRequest) {
   // Login page
   if (pathname === '/login') {
     if (userRole === 'ADMIN') return NextResponse.redirect(new URL('/', request.url));
-    if (userRole === 'GURU') return NextResponse.redirect(new URL('/guru', request.url));
-    if (userRole === 'SISWA') return NextResponse.redirect(new URL('/siswa', request.url));
+    if (userRole === 'GURU') return NextResponse.redirect(new URL('/teacher', request.url));
+    if (userRole === 'SISWA') return NextResponse.redirect(new URL('/student', request.url));
     return NextResponse.next();
   }
 
@@ -53,28 +48,28 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // SISWA: only /siswa and /api/siswa
+  // SISWA: only /student and /api/student
   if (userRole === 'SISWA') {
-    if (pathname.startsWith('/siswa') || pathname.startsWith('/api/siswa')) {
+    if (pathname.startsWith('/student') || pathname.startsWith('/api/student')) {
       return NextResponse.next();
     }
-    return NextResponse.redirect(new URL('/siswa', request.url));
+    return NextResponse.redirect(new URL('/student', request.url));
   }
 
-  // GURU: only /guru and /api/guru
+  // GURU: only /teacher and /api/teacher
   if (userRole === 'GURU') {
-    if (pathname.startsWith('/guru') || pathname.startsWith('/api/guru')) {
+    if (pathname.startsWith('/teacher') || pathname.startsWith('/api/teacher')) {
       return NextResponse.next();
     }
-    return NextResponse.redirect(new URL('/guru', request.url));
+    return NextResponse.redirect(new URL('/teacher', request.url));
   }
 
-  // ADMIN: everything except siswa/guru pages
+  // ADMIN: everything except student/teacher pages
   if (userRole === 'ADMIN') {
-    if (pathname.startsWith('/siswa') || pathname.startsWith('/guru')) {
+    if (pathname.startsWith('/student') || pathname.startsWith('/teacher')) {
       return NextResponse.redirect(new URL('/', request.url));
     }
-    if (pathname.startsWith('/api/siswa') || pathname.startsWith('/api/guru')) {
+    if (pathname.startsWith('/api/student') || pathname.startsWith('/api/teacher')) {
       return NextResponse.redirect(new URL('/', request.url));
     }
     return NextResponse.next();

@@ -32,9 +32,9 @@ export default function Header() {
     window.location.href = '/login';
   };
 
-  let logoHref = '/rekap/public';
+  let logoHref = '/recap/public';
   if (session.isLoggedIn) {
-    logoHref = session.role === 'ADMIN' ? '/' : '/siswa';
+    logoHref = session.role === 'ADMIN' ? '/' : '/student';
   }
 
   let navLinks: { href: string; label: string }[] = [];
@@ -42,28 +42,28 @@ export default function Header() {
     if (session.role === 'ADMIN') {
       navLinks = [
         { href: '/', label: 'Dashboard' },
-        { href: '/absensi', label: 'Absensi' },
+        { href: '/attendance', label: 'Absensi' },
         { href: '/approval', label: 'Approval' },
-        { href: '/rekap', label: 'Rekap' },
-        { href: '/manajemen', label: 'Manajemen' },
-        { href: '/profile', label: 'Profile' },
+        { href: '/recap', label: 'Rekap' },
+        { href: '/management', label: 'Manajemen' },
+        { href: '/settings', label: 'Pengaturan' },
       ];
     } else if (session.role === 'GURU') {
       navLinks = [
-        { href: '/guru', label: 'Dashboard' },
-        { href: '/guru/absensi', label: 'Absensi' },
-        { href: '/guru/approval', label: 'Approval' },
-        { href: '/rekap', label: 'Rekap' },
+        { href: '/teacher', label: 'Dashboard' },
+        { href: '/teacher/attendance', label: 'Absensi' },
+        { href: '/teacher/approval', label: 'Approval' },
+        { href: '/recap', label: 'Rekap' },
       ];
     } else {
       navLinks = [
-        { href: '/siswa', label: 'Beranda' },
-        { href: '/rekap', label: 'Rekap' },
+        { href: '/student', label: 'Beranda' },
+        { href: '/recap', label: 'Rekap' },
       ];
     }
   } else {
     navLinks = [
-      { href: '/rekap/public', label: 'Rekap' },
+      { href: '/recap/public', label: 'Rekap' },
       { href: '/login', label: 'Masuk' },
     ];
   }

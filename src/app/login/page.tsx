@@ -31,8 +31,9 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.role === 'ADMIN' || data.role === 'GURU') router.push('/');
-      else if (data.role === 'SISWA') router.push('/siswa');
+      if (data.role === 'ADMIN') router.push('/');
+      else if (data.role === 'GURU') router.push('/teacher');
+      else if (data.role === 'SISWA') router.push('/student');
     } catch {
       setError('Koneksi ke server gagal. Coba lagi.');
     } finally {
@@ -149,7 +150,7 @@ export default function LoginPage() {
           </div>
 
           <Link
-            href="/rekap/public"
+            href="/recap/public"
             className="flex items-center justify-center gap-2.5 p-3 rounded-[14px] border border-[var(--border-default)] text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--brand)] hover:border-[var(--brand)] hover:bg-[var(--bg-glass)] transition-all group"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 group-hover:scale-110 transition-transform">

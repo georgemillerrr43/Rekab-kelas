@@ -89,11 +89,20 @@ Sistem otomatis mengirim notifikasi WhatsApp ke nomor orang tua siswa dalam situ
 | **Izin/Sakit** diajukan siswa | Orang tua | Saat guru menyetujui atau menolak izin |
 | Izin/Sakit dicatat guru langsung | Orang tua | Saat guru mencatat absensi dengan status Izin/Sakit |
 
-Teknisnya:
-- Menggunakan **API Fonnte** (`WA_API_TOKEN` + `WA_GATEWAY_URL` di `.env`)
-- Nomor orang tua disimpan di data siswa (`whatsappOrangTua`)
-- Format nomor harus diawali kode negara `62` (Indonesia)
-- Simulasi: jika `WA_API_TOKEN` belum diisi, notifikasi hanya muncul di console.log
+### Setup WA Gateway (Fonnte)
+
+1. Daftar akun di [Fonnte](https://fonnte.com)
+2. Masuk ke dashboard Fonnte, salin **API Token** (ada di halaman Settings / API)
+3. Isi token ke file `.env`:
+
+```env
+WA_API_TOKEN="isi_dengan_token_dari_fonnte"
+WA_GATEWAY_URL="https://api.fonnte.com/send"
+```
+
+4. Pastikan nomor WA orang tua siswa diawali `628` (bukan `08`). Contoh: `6281234567890`
+
+> **Catatan**: Jika `WA_API_TOKEN` kosong, WA tidak dikirim dan hanya muncul log di console. Sistem tetap berjalan normal.
 
 ## Tutorial Instalasi
 
@@ -122,7 +131,7 @@ Edit file `.env`:
 DATABASE_URL="mysql://user:password@127.0.0.1:3306/db_rekabkelas"
 PORT=3000
 NODE_ENV=development
-WA_API_TOKEN="isi_nanti"
+WA_API_TOKEN="isi_dengan_token_dari_fonnte"
 WA_GATEWAY_URL="https://api.fonnte.com/send"
 ```
 
@@ -172,13 +181,13 @@ Buka `http://localhost:3000` di browser.
 
 **Yang bisa dilakukan:**
 - **Dashboard Guru** — lihat ringkasan kelas (rata-rata kehadiran, total siswa)
-- **Input Absensi** (`/guru/absensi`) — pilih tanggal, catat kehadiran siswa satu per satu
+- **Input Absensi** (`/teacher/attendance`) — pilih tanggal, catat kehadiran siswa satu per satu
   - Untuk yang Izin/Sakit: alasan dan foto bukti wajib diisi
   - Kalau sudah pernah disubmit, tampilkan ucapan sukses
-- **Approval Izin** (`/guru/approval`) — lihat daftar siswa yang mengajukan izin
+- **Approval Izin** (`/teacher/approval`) — lihat daftar siswa yang mengajukan izin
   - Klik foto bukti untuk memperbesar
   - Setujui atau tolak
-- **Rekap & PDF** (`/rekap`) — lihat rekap bulanan/harian, unduh PDF
+- **Rekap & PDF** (`/recap`) — lihat rekap bulanan/harian, unduh PDF
 
 ### Admin
 
@@ -186,12 +195,12 @@ Buka `http://localhost:3000` di browser.
 
 **Yang bisa dilakukan:**
 - **Dashboard Admin** — statistik global, approval izin semua kelas, grafik, siswa dengan alpa tertinggi
-- **Manajemen** (`/manajemen`) — CRUD untuk:
+- **Manajemen** (`/management`) — CRUD untuk:
   - **Kelas** — tambah, edit, hapus kelas
   - **Guru** — tambah guru, assign ke kelas, lihat password plain
   - **Siswa** — tambah siswa, assign ke kelas, lihat password plain
-- **Absensi Admin** (`/absensi`) — catat absensi untuk kelas manapun (override)
-- **Rekap & PDF** (`/rekap`) — lihat rekap semua kelas, filter per kelas
+- **Absensi Admin** (`/attendance`) — catat absensi untuk kelas manapun (override)
+- **Rekap & PDF** (`/recap`) — lihat rekap semua kelas, filter per kelas
 
 ## Struktur Folder
 
@@ -202,25 +211,33 @@ rekabkelas/
 │   └── seed.ts            # Data awal
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx       # Dashboard Admin
-│   │   ├── login/         # Halaman login
-│   │   ├── absensi/       # Absensi (Admin)
-│   │   ├── approval/      # Approval izin (Admin)
-│   │   ├── manajemen/     # CRUD kelas, guru, siswa
-│   │   ├── rekap/         # Rekap & PDF
-│   │   ├── guru/          # Panel Guru
-│   │   │   ├── page.tsx           # Dashboard Guru
-│   │   │   ├── absensi/           # Absensi Guru
-│   │   │   └── approval/          # Approval Guru
-│   │   ├── siswa/         # Dashboard Siswa
-│   │   └── api/           # API routes
-│   ├── components/        # Komponen UI
+│   │   ├── page.tsx            # Dashboard Admin
+│   │   ├── login/              # Halaman login
+│   │   ├── approval/           # Approval izin
+│   │   ├── attendance/         # Absensi (Admin)
+│   │   ├── management/         # CRUD kelas, guru, siswa
+│   │   ├── recap/              # Rekap & PDF
+│   │   │   └── public/         # Rekap publik (tanpa login)
+│   │   ├── settings/           # Pengaturan akun
+│   │   ├── teacher/            # Panel Guru
+│   │   │   ├── page.tsx        # Dashboard Guru
+│   │   │   ├── attendance/     # Absensi Guru
+│   │   │   └── approval/       # Approval Guru
+│   │   ├── student/            # Dashboard Siswa
+│   │   └── api/                # API routes
+│   │       ├── admin/          # API Admin
+│   │       ├── teacher/        # API Guru
+│   │       ├── student/        # API Siswa
+│   │       ├── classes/        # API Kelas (publik)
+│   │       ├── recap/          # API Rekap
+│   │       └── upload/         # API Upload
+│   ├── components/             # Komponen UI
 │   ├── lib/
-│   │   ├── auth.ts        # Session & auth logic
-│   │   └── prisma.ts      # Prisma client
+│   │   ├── auth.ts             # Session & auth logic
+│   │   └── prisma.ts           # Prisma client
 │   └── utils/
-│       ├── pdfExport.ts   # Generate PDF
-│       └── waNotification.ts  # Simulasi WA
+│       ├── pdfExport.ts        # Generate PDF
+│       └── waNotification.ts   # Notifikasi WA (Fonnte API)
 ├── public/uploads/        # Upload foto bukti
 └── .env.example
 ```
@@ -235,4 +252,4 @@ rekabkelas/
 | Auth | Session-based (AES-256-CBC encrypted cookie) |
 | PDF | jsPDF + jspdf-autotable |
 | Upload | Server file system |
-| Notifikasi WA | Fonnte API (simulasi: console.log) |
+| Notifikasi WA | Fonnte API |

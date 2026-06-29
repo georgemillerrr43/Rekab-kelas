@@ -25,9 +25,9 @@ export async function GET(
     });
   } catch (error: any) {
     if (error.code === 'ENOENT') {
-      return new NextResponse('File not found', { status: 404 });
+      return new NextResponse('File tidak ditemukan', { status: 404 });
     }
-    console.error('Error serving file:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('GET /api/uploads/[filename]:', error);
+    return new NextResponse('Gagal memuat file', { status: 500 });
   }
 }

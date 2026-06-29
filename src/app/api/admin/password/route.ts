@@ -6,7 +6,7 @@ import { hashPassword, verifyPassword, getSession } from '@/lib/auth';
 export async function PUT(request: NextRequest) {
   const session = getSession(request);
   if (!session || session.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
   }
 
   try {

@@ -87,7 +87,7 @@ export default function AdminDashboard() {
           <div className="glass-card p-5">
             <div className="flex justify-between items-center pb-4 border-b border-[var(--border-subtle)] mb-4">
               <h3 className="font-bold text-[var(--text-primary)] text-sm">Siswa Sering Tidak Hadir</h3>
-              <Link href="/rekap" className="text-xs font-semibold text-[var(--brand)] hover:underline">Rekap</Link>
+              <Link href="/recap" className="text-xs font-semibold text-[var(--brand)] hover:underline">Rekap</Link>
             </div>
             <div className="space-y-3">
               {stats.topAbsentees.length === 0 ? (
@@ -137,10 +137,10 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 stagger-enter">
           {[
-            { label: 'Input Absensi', desc: 'Catat kehadiran siswa.', href: '/absensi' },
+            { label: 'Input Absensi', desc: 'Catat kehadiran siswa.', href: '/attendance' },
             { label: 'Approval Izin', desc: 'Review surat izin dan foto.', href: '/approval' },
-            { label: 'Rekap dan PDF', desc: 'Unduh laporan bulanan.', href: '/rekap' },
-            { label: 'Manajemen', desc: 'Kelola kelas dan siswa.', href: '/manajemen' },
+            { label: 'Rekap dan PDF', desc: 'Unduh laporan bulanan.', href: '/recap' },
+            { label: 'Manajemen', desc: 'Kelola kelas dan siswa.', href: '/management' },
           ].map((link) => (
             <Link key={link.href} href={link.href}
               className="glass-card-hover p-4 group">
