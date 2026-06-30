@@ -1,3 +1,6 @@
+const WEB_URL = 'https://rekab.rizkyperdana.my.id';
+const RECAP_URL = `${WEB_URL}/recap/public`;
+
 interface WANotificationPayload {
   namaSiswa: string;
   nis: string;
@@ -17,16 +20,22 @@ function buildMessage(payload: WANotificationPayload): string {
     day: 'numeric',
   });
 
+  const header = '═══════════════════════════════\n*REKAP KELAS — PEMBERITAHUAN KEHADIRAN*\n═══════════════════════════════';
+  const footer = `\n\n─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─\n*📱 Pantau Kehadiran Online*\nKunjungi: ${RECAP_URL}\nMasukkan NIS putra/putri Bapak/Ibu untuk melihat rekap kehadiran secara lengkap dan real-time.\n\n─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─\n${WEB_URL}\n*Sistem Absensi Sekolah*`;
+
+  const studentInfo = `\n\nYth. Orang Tua/Wali dari\n👤 *${namaSiswa}* (NIS: ${nis})`;
+
   if (status === 'ALPA') {
-    return `*PEMBERITAHUAN KETIDAKHADIRAN*\n\nYth. Orang Tua/Wali dari *${namaSiswa}* (${nis}),\n\nPutra/putri Anda tercatat *TIDAK HADIR (ALPA)* tanpa keterangan pada hari *${formatTanggal}*.\n\nMohon hubungi Wali Kelas.\n\n- Sistem Absensi Sekolah`;
+    return `${header}${studentInfo}\n\n📅 *${formatTanggal}*\n\n❌ *STATUS: TIDAK HADIR (ALPA)*\n\nPutra/putri Bapak/Ibu tidak hadir tanpa keterangan pada hari tersebut. Mohon konfirmasi ke Wali Kelas.${footer}`;
   }
 
   if (status === 'IZIN' || status === 'SAKIT') {
     const label = status === 'IZIN' ? 'IZIN' : 'SAKIT';
-    return `*PEMBERITAHUAN KEHADIRAN (${label})*\n\nYth. Orang Tua/Wali dari *${namaSiswa}* (${nis}),\n\nPutra/putri Anda tercatat *${label}* pada hari *${formatTanggal}*.\nAlasan: ${alasan || '-'}\n\n- Sistem Absensi Sekolah`;
+    const icon = status === 'IZIN' ? '📝' : '🤒';
+    return `${header}${studentInfo}\n\n📅 *${formatTanggal}*\n\n${icon} *STATUS: ${label}*\n📋 Alasan: ${alasan || '-'}\n\nTerima kasih telah memberikan keterangan.${footer}`;
   }
 
-  return `*PEMBERITAHUAN KEHADIRAN*\n\nYth. Orang Tua/Wali dari *${namaSiswa}* (${nis}),\n\nPutra/putri Anda tercatat *HADIR* pada hari *${formatTanggal}*.\n\n- Sistem Absensi Sekolah`;
+  return `${header}${studentInfo}\n\n📅 *${formatTanggal}*\n\n✅ *STATUS: HADIR*\n\nPutra/putri Bapak/Ibu tercatat hadir tepat waktu.${footer}`;
 }
 
 function extractCountryCode(number: string): string {
