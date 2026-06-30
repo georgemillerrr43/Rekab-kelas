@@ -42,7 +42,7 @@ async function main() {
     data: {
       username: 'admin',
       password: adminPassword,
-      nama: 'Budi Setiawan, S.Pd.',
+      nama: 'Admin',
     },
   });
 

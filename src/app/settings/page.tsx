@@ -6,9 +6,6 @@ export default function SettingsPage() {
   const [session, setSession] = useState<{ isLoggedIn: boolean; role: string | null; nama?: string; username?: string }>({
     isLoggedIn: false, role: null,
   });
-  const [nameLoading, setNameLoading] = useState(false);
-  const [nameMsg, setNameMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [newName, setNewName] = useState('');
   const [pwCurrent, setPwCurrent] = useState('');
   const [pwNew, setPwNew] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
@@ -25,24 +22,6 @@ export default function SettingsPage() {
       } catch { /* ignore */ }
     })();
   }, []);
-
-  const handleChangeName = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setNameLoading(true);
-    setNameMsg(null);
-    try {
-      const res = await fetch('/api/auth/name', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newName }),
-      });
-      const data = await res.json();
-      if (!res.ok) setNameMsg({ type: 'error', text: data.error });
-      else { setNameMsg({ type: 'success', text: 'Nama berhasil diubah!' }); setSession(s => ({ ...s, nama: newName })); setNewName(''); }
-    } catch { setNameMsg({ type: 'error', text: 'Gagal menghubungi server' }); }
-    setNameLoading(false);
-    setTimeout(() => setNameMsg(null), 5000);
-  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,23 +59,6 @@ export default function SettingsPage() {
             <p className="text-sm text-[var(--text-muted)]">Username: {session.username || '-'}</p>
           </div>
         </div>
-
-        {/* Ganti Nama */}
-        <h3 className="font-bold text-[var(--text-primary)] text-sm mb-4">Ganti Nama</h3>
-        {nameMsg && (
-          <div className={`p-3 rounded-[var(--radius-input)] text-sm font-semibold border mb-4 ${nameMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>
-            {nameMsg.text}
-          </div>
-        )}
-        <form onSubmit={handleChangeName} className="space-y-4 mb-6 pb-6 border-b border-[var(--border-subtle)]">
-          <div>
-            <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama Baru</label>
-            <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} required minLength={2} className="glass-input w-full p-2.5 text-sm" />
-          </div>
-          <button type="submit" disabled={nameLoading} className="btn-primary w-full py-2.5 text-sm font-bold">
-            {nameLoading ? 'Menyimpan...' : 'Simpan Nama Baru'}
-          </button>
-        </form>
 
         {/* Ganti Password */}
         <h3 className="font-bold text-[var(--text-primary)] text-sm mb-4">Ganti Password</h3>

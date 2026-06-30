@@ -309,7 +309,7 @@ export default function ManagementPage() {
           <div className="glass-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div><h2 className="text-lg font-bold text-[var(--text-primary)]">Manajemen Kelas</h2><p className="text-[var(--text-muted)] text-xs mt-0.5">Tambahkan kelas baru dengan nama guru / wali kelas.</p></div>
             {kelasList.length > 0 && (
-            <button onClick={() => setShowAddKelas(true)} className="btn-primary px-5 py-2.5 text-sm font-bold">
+            <button onClick={() => { setShowAddKelas(true); setAddKelasMsg(null); setNewKNama(''); setNewWKelas(''); setGuruUsername(''); setGuruPassword(''); }} className="btn-primary px-5 py-2.5 text-sm font-bold">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Kelas
             </button>
             )}
@@ -364,7 +364,7 @@ export default function ManagementPage() {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--text-muted)" className="w-7 h-7"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" /></svg>
                   </div>
                   <p className="text-[var(--text-muted)] text-sm mb-4">Belum ada kelas. Buat kelas baru untuk memulai.</p>
-                  <button onClick={() => setShowAddKelas(true)} className="btn-primary px-5 py-2.5 text-sm font-bold inline-flex items-center gap-2">
+                  <button onClick={() => { setShowAddKelas(true); setAddKelasMsg(null); setNewKNama(''); setNewWKelas(''); setGuruUsername(''); setGuruPassword(''); }} className="btn-primary px-5 py-2.5 text-sm font-bold inline-flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Buat Kelas Baru
                   </button>
@@ -481,7 +481,7 @@ export default function ManagementPage() {
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                 Export PDF
               </button>
-              <button onClick={() => setShowAddSiswa(true)} className="btn-primary px-5 py-2.5 text-sm font-bold">
+              <button onClick={() => { setShowAddSiswa(true); setAddSiswaMsg(null); setFNis(''); setFNama(''); setFKelasId(''); setFUsername(''); setFPassword(''); setFWa(''); }} className="btn-primary px-5 py-2.5 text-sm font-bold">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" /></svg>Tambah Siswa
               </button>
             </div>

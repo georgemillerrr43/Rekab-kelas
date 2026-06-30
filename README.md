@@ -1,6 +1,13 @@
 # RekapKelas — Sistem Absensi Digital
 
-**RekapKelas** adalah aplikasi absensi digital berbasis web untuk sekolah. Dibangun dengan **Next.js 14**, **Prisma ORM**, dan **MySQL**.
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js" alt="Next.js 14" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma" alt="Prisma ORM" />
+  <img src="https://img.shields.io/badge/MySQL-8-4479A1?style=flat-square&logo=mysql" alt="MySQL" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=flat-square&logo=tailwind-css" alt="Tailwind CSS" />
+</p>
+
+**RekapKelas** adalah aplikasi absensi digital berbasis web untuk sekolah — menggantikan buku absensi kertas dengan sistem yang modern, transparan, dan otomatis.
 
 ## Kenapa RekapKelas Dibuat?
 
@@ -17,28 +24,30 @@ Aplikasi ini dibuat karena di banyak sekolah, pencatatan kehadiran siswa masih m
 ```mermaid
 flowchart TB
     subgraph SISWA["Siswa"]
-        A1[Mengajukan Izin/Sakit]
-        A2[Lihat Rekap Sendiri]
+        direction TB
+        S1[Mengajukan Izin] --> S2[Upload Foto Bukti]
+        S2 --> S3[Lihat Status Approval]
+        S3 --> S4[Lihat Rekap Sendiri]
     end
 
     subgraph GURU["Guru / Wali Kelas"]
-        B1[Catat Absensi Harian]
-        B2[Setujui/Tolak Izin]
+        direction TB
+        G1[Catat Absensi Harian] --> G2[Setujui / Tolak Izin]
     end
 
     subgraph ADMIN["Admin"]
-        C1[Kelola Data Kelas]
-        C2[Kelola Guru & Siswa]
-        C3[Pantau Semua Kelas]
+        direction TB
+        A1[Buat Kelas] --> A2[Buat Akun Guru]
+        A2 --> A3[Buat Data Siswa]
+        A3 --> A4[Pantau Semua Kelas]
     end
 
-    A1 -->|Ajukan izin| B2
-    A1 -->|Notifikasi WA| A2
-    B1 -->|Notifikasi WA| A2
-    B2 -->|Approved/Rejected| A1
-    C1 --> B1
-    C2 --> B1
-    C3 --> B1
+    S1 -.->|"Notifikasi WA ke Orang Tua"| S4
+    G1 -.->|"WA: Alpa / Izin / Sakit"| S4
+    S1 -->|"Ajukan Izin"| G2
+    G2 -->|"Approved / Rejected"| S3
+    A4 --> G1
+    A3 --> G1
 ```
 
 | Peran | Tugas Utama |
@@ -47,17 +56,68 @@ flowchart TB
 | **Guru / Wali Kelas** | Catat absensi harian kelasnya, setujui/tolak izin siswa |
 | **Admin** | Kelola data kelas, guru, dan siswa; pantau seluruh kelas |
 
+### Sequence Diagram Alur End-to-End
+
+```mermaid
+sequenceDiagram
+    participant A as Admin
+    participant G as Guru
+    participant S as Siswa
+    participant W as WA Gateway
+    participant DB as Database
+
+    rect rgb(240, 240, 245)
+        Note over A,DB: Setup Awal
+        A->>DB: Buat Kelas
+        A->>DB: Buat Akun Guru
+        A->>DB: Input Data Siswa + Nomor WA Orang Tua
+    end
+
+    rect rgb(245, 240, 240)
+        Note over S,DB: Pengajuan Izin
+        S->>DB: Login (username + password)
+        S->>DB: Ajukan Izin/Sakit + Foto Bukti
+        Note over DB: Status: PENDING
+        G->>DB: Login
+        G->>DB: Lihat Daftar Pengajuan Izin
+        G->>DB: Setujui / Tolak
+        Note over DB: Status: APPROVED / REJECTED
+        G-->>S: Notifikasi Status Approval
+    end
+
+    rect rgb(240, 245, 240)
+        Note over G,W: Pencatatan Absensi
+        G->>DB: Catat Kehadiran (Hadir/Izin/Sakit/Alpa)
+        alt Status: ALPA atau IZIN/SAKIT
+            DB->>W: Kirim Notifikasi WA ke Orang Tua
+            W-->>DB: Terkirim / Gagal
+        else Status: HADIR
+            Note over DB: Tidak kirim WA
+        end
+    end
+
+    rect rgb(245, 245, 240)
+        Note over A,DB: Monitoring
+        A->>DB: Pantau Semua Kelas
+        A->>DB: Unduh Rekap PDF
+        S->>DB: Lihat Riwayat Kehadiran
+        G->>DB: Unduh Rekap PDF Kelas
+    end
+```
+
 ## Fitur Utama
 
-- **3 role login**: Admin, Guru, Siswa dengan dashboard masing-masing
-- **Absensi harian**: Catat kehadiran dengan 4 status (Hadir / Izin / Sakit / Alpa)
-- **Pengajuan izin digital**: Siswa upload foto bukti sebagai lampiran
-- **Approval izin**: Guru setujui/tolak izin dengan verifikasi foto
-- **Rekap PDF**: Unduh laporan bulanan atau harian dalam format PDF
-- **Statistik visual**: Grafik dan ringkasan kehadiran di dashboard
-- **Notifikasi WhatsApp otomatis**: Kirim pemberitahuan ke orang tua saat guru mencatat absensi — dikirim pas **input absensi**, bukan pas approval
-- **Responsive**: Bisa dipakai dari HP maupun laptop
-- **Dark/Light mode**: Tersedia kedua tema
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Multi-role** | 3 role login (Admin, Guru, Siswa) dengan dashboard masing-masing |
+| **Absensi Harian** | Catat kehadiran 4 status: Hadir, Izin, Sakit, Alpa |
+| **Izin Digital** | Siswa ajukan izin/sakit + upload foto bukti |
+| **Approval Izin** | Guru setujui/tolak izin dengan verifikasi foto |
+| **Rekap PDF** | Unduh laporan bulanan atau harian |
+| **Statistik Visual** | Grafik kehadiran di dashboard setiap role |
+| **WA Otomatis** | Notifikasi ke orang tua saat absensi dicatat (bukan pas approval) |
+| **Responsive** | Bisa dipakai dari HP, tablet, maupun laptop |
+| **Dark / Light Mode** | Tersedia kedua tema
 
 ## Notifikasi WhatsApp
 
@@ -236,3 +296,7 @@ rekabkelas/
 | PDF | jsPDF + jspdf-autotable |
 | Upload | Server file system |
 | Notifikasi WA | Fonnte API |
+
+---
+
+Dibuat dengan niat untuk mempermudah administrasi sekolah. Open source, bebas dipakai dan dikembangkan.
