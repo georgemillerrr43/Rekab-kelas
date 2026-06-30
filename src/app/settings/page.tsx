@@ -6,9 +6,6 @@ export default function SettingsPage() {
   const [session, setSession] = useState<{ isLoggedIn: boolean; role: string | null; nama?: string; username?: string }>({
     isLoggedIn: false, role: null,
   });
-  const [username, setUsername] = useState('');
-  const [unameLoading, setUnameLoading] = useState(false);
-  const [unameMsg, setUnameMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [pwCurrent, setPwCurrent] = useState('');
   const [pwNew, setPwNew] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
@@ -21,29 +18,10 @@ export default function SettingsPage() {
         if (res.ok) {
           const data = await res.json();
           setSession(data);
-          setUsername(data.username || '');
         }
       } catch { /* ignore */ }
     })();
   }, []);
-
-  const handleChangeUsername = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setUnameLoading(true);
-    setUnameMsg(null);
-    try {
-      const res = await fetch('/api/auth/username', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newUsername: username }),
-      });
-      const data = await res.json();
-      if (!res.ok) setUnameMsg({ type: 'error', text: data.error });
-      else { setUnameMsg({ type: 'success', text: 'Username berhasil diubah!' }); }
-    } catch { setUnameMsg({ type: 'error', text: 'Gagal' }); }
-    setUnameLoading(false);
-    setTimeout(() => setUnameMsg(null), 5000);
-  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +46,7 @@ export default function SettingsPage() {
       <div className="page-header">
         <span className="badge badge-gray mb-2">Pengaturan</span>
         <h1>Pengaturan Akun</h1>
-        <p>Ubah username dan password akun Anda.</p>
+        <p>Ubah password akun Anda.</p>
       </div>
 
       <div className="glass-card p-6">
