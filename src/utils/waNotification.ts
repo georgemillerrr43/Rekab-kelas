@@ -29,6 +29,17 @@ function buildMessage(payload: WANotificationPayload): string {
   return `*PEMBERITAHUAN KEHADIRAN*\n\nYth. Orang Tua/Wali dari *${namaSiswa}* (${nis}),\n\nPutra/putri Anda tercatat *HADIR* pada hari *${formatTanggal}*.\n\n- Sistem Absensi Sekolah`;
 }
 
+function extractCountryCode(number: string): string {
+  // Bersihin dulu: spasi, strip, + prefix
+  const c = number?.trim().replace(/[\s\-]/g, '').replace(/^\+/, '') || '';
+  if (!c) return '';
+  const first = c[0];
+  // Single-digit country codes: US/CA (1), Russia/Kazakhstan (7)
+  if (first === '1' || first === '7') return first;
+  // Sisanya pake 2 digit awal (62, 44, 91, 81, 86, dll)
+  return c.slice(0, 2);
+}
+
 export async function sendWhatsAppNotification(payload: WANotificationPayload): Promise<{
   success: boolean;
   messageId?: string;
@@ -57,6 +68,13 @@ export async function sendWhatsAppNotification(payload: WANotificationPayload): 
 
   try {
     const messageText = buildMessage(payload);
+    const countryCode = extractCountryCode(whatsappOrangTua);
+
+    const body: Record<string, any> = {
+      target: whatsappOrangTua,
+      message: messageText,
+    };
+    if (countryCode) body.countryCode = countryCode;
 
     const res = await fetch(gatewayUrl, {
       method: 'POST',
@@ -64,10 +82,7 @@ export async function sendWhatsAppNotification(payload: WANotificationPayload): 
         'Authorization': token,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        target: whatsappOrangTua,
-        message: messageText,
-      }),
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
