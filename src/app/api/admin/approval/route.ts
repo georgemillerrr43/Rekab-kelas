@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { sendWhatsAppNotification } from '@/utils/waNotification';
 
 export async function GET(request: NextRequest) {
   const session = getSession(request);
@@ -86,16 +85,6 @@ export async function POST(request: NextRequest) {
         update: { status: (targetIzin.tipe as any) || 'IZIN', izinId: id },
         create: { siswaId: targetIzin.siswaId, tanggal, status: (targetIzin.tipe as any) || 'IZIN', izinId: id },
       });
-
-      const waApproved = await sendWhatsAppNotification({
-        namaSiswa: targetIzin.siswa.nama,
-        nis: targetIzin.siswa.nis,
-        tanggal: tanggal.toISOString().split('T')[0],
-        status: (targetIzin.tipe as any) || 'IZIN',
-        whatsappOrangTua: targetIzin.siswa.whatsappOrangTua,
-        alasan: targetIzin.alasan || undefined,
-      });
-      if (!waApproved.success) console.error('[WA] Admin approval - Gagal kirim WA', targetIzin.siswa.nama, waApproved.error);
     } else {
       if (targetIzin.kehadiran) {
         await prisma.kehadiran.update({
@@ -109,15 +98,6 @@ export async function POST(request: NextRequest) {
           create: { siswaId: targetIzin.siswaId, tanggal, status: 'ALPA' },
         });
       }
-
-      const waAlpa = await sendWhatsAppNotification({
-        namaSiswa: targetIzin.siswa.nama,
-        nis: targetIzin.siswa.nis,
-        tanggal: tanggal.toISOString().split('T')[0],
-        status: 'ALPA',
-        whatsappOrangTua: targetIzin.siswa.whatsappOrangTua,
-      });
-      if (!waAlpa.success) console.error('[WA] Admin approval - Gagal WA ALPA', targetIzin.siswa.nama, waAlpa.error);
     }
 
     return NextResponse.json({ success: true });

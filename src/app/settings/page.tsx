@@ -50,7 +50,7 @@ export default function SettingsPage() {
     setPwLoading(true);
     setPwMsg(null);
     try {
-      const res = await fetch('/api/admin/password', {
+      const res = await fetch('/api/auth/password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword: pwCurrent, newPassword: pwNew }),

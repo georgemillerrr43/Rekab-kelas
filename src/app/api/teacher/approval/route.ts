@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { sendWhatsAppNotification } from '@/utils/waNotification';
 
 export async function GET(request: NextRequest) {
   const session = getSession(request);
@@ -82,19 +81,8 @@ export async function POST(request: NextRequest) {
         update: { status: (izin.tipe as any) || 'IZIN', izinId: id },
         create: { siswaId: izin.siswaId, tanggal, status: (izin.tipe as any) || 'IZIN', izinId: id },
       });
-
-      // Kirim notif WA — izin disetujui
-      const waResult = await sendWhatsAppNotification({
-        namaSiswa: izin.siswa.nama,
-        nis: izin.siswa.nis,
-        tanggal: tanggal.toISOString().split('T')[0],
-        status: (izin.tipe as any) || 'IZIN',
-        whatsappOrangTua: izin.siswa.whatsappOrangTua,
-        alasan: izin.alasan || undefined,
-      });
-      if (!waResult.success) console.error('[WA] Approval teacher - Gagal kirim WA ke', izin.siswa.nama, waResult.error);
     } else {
-      // Izin ditolak → Kehadiran status ALPA + kirim WA notif
+      // Izin ditolak → Kehadiran status ALPA
       const khd = await prisma.kehadiran.findFirst({ where: { izinId: id } });
       if (khd) {
         await prisma.kehadiran.update({ where: { id: khd.id }, data: { status: 'ALPA', izinId: null } });
@@ -105,15 +93,6 @@ export async function POST(request: NextRequest) {
           create: { siswaId: izin.siswaId, tanggal, status: 'ALPA' },
         });
       }
-
-      const waAlpa = await sendWhatsAppNotification({
-        namaSiswa: izin.siswa.nama,
-        nis: izin.siswa.nis,
-        tanggal: tanggal.toISOString().split('T')[0],
-        status: 'ALPA',
-        whatsappOrangTua: izin.siswa.whatsappOrangTua,
-      });
-      if (!waAlpa.success) console.error('[WA] Approval teacher - Gagal WA ALPA ke', izin.siswa.nama, waAlpa.error);
     }
 
     return NextResponse.json({ success: true });

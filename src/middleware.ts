@@ -48,17 +48,17 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // SISWA: only /student and /api/student
+  // SISWA: only /student, /settings, and /api/student
   if (userRole === 'SISWA') {
-    if (pathname.startsWith('/student') || pathname.startsWith('/api/student')) {
+    if (pathname.startsWith('/student') || pathname.startsWith('/api/student') || pathname.startsWith('/settings') || pathname.startsWith('/api/auth')) {
       return NextResponse.next();
     }
     return NextResponse.redirect(new URL('/student', request.url));
   }
 
-  // GURU: only /teacher and /api/teacher
+  // GURU: only /teacher, /settings, and /api/teacher
   if (userRole === 'GURU') {
-    if (pathname.startsWith('/teacher') || pathname.startsWith('/api/teacher')) {
+    if (pathname.startsWith('/teacher') || pathname.startsWith('/api/teacher') || pathname.startsWith('/settings') || pathname.startsWith('/api/auth')) {
       return NextResponse.next();
     }
     return NextResponse.redirect(new URL('/teacher', request.url));
