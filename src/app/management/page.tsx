@@ -67,6 +67,8 @@ export default function ManagementPage() {
   const [showAddKelas, setShowAddKelas] = useState(false);
   const [addKelasLoading, setAddKelasLoading] = useState(false);
   const [kelasMsg, setKelasMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [addKelasMsg, setAddKelasMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [editKelasMsg, setEditKelasMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [newKNama, setNewKNama] = useState('');
   const [newWKelas, setNewWKelas] = useState('');
   const [guruUsername, setGuruUsername] = useState('');
@@ -80,11 +82,14 @@ export default function ManagementPage() {
   const [guruList, setGuruList] = useState<GuruItem[]>([]);
   const [guruLoading, setGuruLoading] = useState(false);
   const [guruMsg, setGuruMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [editGuruMsg, setEditGuruMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [siswaList, setSiswaList] = useState<SiswaItem[]>([]);
   const [siswaLoading, setSiswaLoading] = useState(false);
   const [showAddSiswa, setShowAddSiswa] = useState(false);
   const [addSiswaLoading, setAddSiswaLoading] = useState(false);
   const [siswaMsg, setSiswaMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [addSiswaMsg, setAddSiswaMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [editSiswaMsg, setEditSiswaMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [filterKelas, setFilterKelas] = useState<string>('all');
   const [fNis, setFNis] = useState(''); const [fNama, setFNama] = useState('');
   const [fKelasId, setFKelasId] = useState(''); const [fUsername, setFUsername] = useState('');
@@ -139,15 +144,15 @@ export default function ManagementPage() {
   };
 
   const handleAddKelas = async (e: React.FormEvent) => {
-    e.preventDefault(); setAddKelasLoading(true); setKelasMsg(null);
+    e.preventDefault(); setAddKelasLoading(true); setAddKelasMsg(null);
     const res = await fetch('/api/admin/classes', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nama: newKNama, waliKelas: newWKelas, guruUsername: guruUsername || undefined, guruPassword: guruPassword || undefined }),
     });
     const data = await res.json();
-    if (!res.ok) setKelasMsg({ type: 'error', text: data.error || 'Gagal menambah kelas' });
+    if (!res.ok) setAddKelasMsg({ type: 'error', text: data.error || 'Gagal menambah kelas' });
     else { setKelasMsg({ type: 'success', text: `Kelas "${newKNama}" berhasil ditambahkan!` }); setNewKNama(''); setNewWKelas(''); setGuruUsername(''); setGuruPassword(''); setShowAddKelas(false); fetchKelas(); }
-    setAddKelasLoading(false); setTimeout(() => setKelasMsg(null), 5000);
+    setAddKelasLoading(false); setTimeout(() => setAddKelasMsg(null), 5000);
   };
 
   const startEditKelas = (k: { id: string; nama: string; waliKelas: string }) => {
@@ -155,15 +160,15 @@ export default function ManagementPage() {
   };
 
   const handleEditKelas = async (e: React.FormEvent) => {
-    e.preventDefault(); setEditLoading(true); setKelasMsg(null);
+    e.preventDefault(); setEditLoading(true); setEditKelasMsg(null);
     const res = await fetch('/api/admin/classes', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: editKelas!.id, nama: editKNama, waliKelas: editWKelas }),
     });
     const data = await res.json();
-    if (!res.ok) setKelasMsg({ type: 'error', text: data.error });
+    if (!res.ok) setEditKelasMsg({ type: 'error', text: data.error });
     else { setKelasMsg({ type: 'success', text: `Kelas "${editKNama}" berhasil diperbarui!` }); setEditKelas(null); fetchKelas(); }
-    setEditLoading(false); setTimeout(() => setKelasMsg(null), 5000);
+    setEditLoading(false); setTimeout(() => setEditKelasMsg(null), 5000);
   };
 
   const handleDeleteKelas = async () => {
@@ -200,14 +205,14 @@ export default function ManagementPage() {
   };
   const handleEditGuru = async (e: React.FormEvent) => {
     e.preventDefault(); if (!editGuru) return;
-    setEditGuruLoading(true); setGuruMsg(null);
+    setEditGuruLoading(true); setEditGuruMsg(null);
     const body: Record<string, string> = { id: editGuru.id, username: editGuruUsername, nama: editGuruNama };
     if (editGuruPassword) body.password = editGuruPassword;
     const res = await fetch('/api/admin/teacher', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json();
-    if (!res.ok) setGuruMsg({ type: 'error', text: data.error ?? 'Gagal update guru' });
+    if (!res.ok) setEditGuruMsg({ type: 'error', text: data.error ?? 'Gagal update guru' });
     else { setGuruMsg({ type: 'success', text: 'Guru berhasil diperbarui!' }); setEditGuru(null); fetchGuru(); }
-    setEditGuruLoading(false); setTimeout(() => setGuruMsg(null), 5000);
+    setEditGuruLoading(false); setTimeout(() => setEditGuruMsg(null), 5000);
   };
 
   // ---- Siswa Edit ----
@@ -217,14 +222,14 @@ export default function ManagementPage() {
   };
   const handleEditSiswa = async (e: React.FormEvent) => {
     e.preventDefault(); if (!editSiswa) return;
-    setEditSiswaLoading(true); setSiswaMsg(null);
+    setEditSiswaLoading(true); setEditSiswaMsg(null);
     const body: Record<string, string> = { id: editSiswa.id, nis: editSiswaNis, nama: editSiswaNama, username: editSiswaUsername, whatsappOrangTua: editSiswaWa };
     if (editSiswaPassword) body.password = editSiswaPassword;
     const res = await fetch('/api/admin/student', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json();
-    if (!res.ok) setSiswaMsg({ type: 'error', text: data.error ?? 'Gagal update siswa' });
+    if (!res.ok) setEditSiswaMsg({ type: 'error', text: data.error ?? 'Gagal update siswa' });
     else { setSiswaMsg({ type: 'success', text: 'Siswa berhasil diperbarui!' }); setEditSiswa(null); fetchSiswa(); }
-    setEditSiswaLoading(false); setTimeout(() => setSiswaMsg(null), 5000);
+    setEditSiswaLoading(false); setTimeout(() => setEditSiswaMsg(null), 5000);
   };
 
   // ---- Export PDF ----
@@ -272,15 +277,15 @@ export default function ManagementPage() {
   };
 
   const handleAddSiswa = async (e: React.FormEvent) => {
-    e.preventDefault(); setAddSiswaLoading(true); setSiswaMsg(null);
+    e.preventDefault(); setAddSiswaLoading(true); setAddSiswaMsg(null);
     const res = await fetch('/api/admin/student', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nis: fNis, nama: fNama, kelasId: fKelasId, username: fUsername, password: fPassword, whatsappOrangTua: fWa }),
     });
     const data = await res.json();
-    if (!res.ok) setSiswaMsg({ type: 'error', text: data.error });
+    if (!res.ok) setAddSiswaMsg({ type: 'error', text: data.error });
     else { setSiswaMsg({ type: 'success', text: `Akun "${fNama}" berhasil dibuat!` }); setFNis(''); setFNama(''); setFKelasId(''); setFUsername(''); setFPassword(''); setFWa(''); setShowAddSiswa(false); fetchSiswa(); }
-    setAddSiswaLoading(false); setTimeout(() => setSiswaMsg(null), 5000);
+    setAddSiswaLoading(false); setTimeout(() => setAddSiswaMsg(null), 5000);
   };
 
   const filteredSiswa = filterKelas === 'all' ? siswaList : siswaList.filter(s => s.kelasId === filterKelas);
@@ -314,6 +319,7 @@ export default function ManagementPage() {
 
           <Modal open={showAddKelas} onClose={() => setShowAddKelas(false)} title="Tambah Kelas Baru">
             <form onSubmit={handleAddKelas} className="space-y-4">
+              {addKelasMsg && <div className={`p-3 rounded-[var(--radius-input)] text-sm font-semibold border ${addKelasMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{addKelasMsg.text}</div>}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama Kelas *</label><input type="text" value={newKNama} onChange={(e) => setNewKNama(e.target.value)} required placeholder="XI-RPL-1" className="glass-input w-full p-2.5 text-sm" /></div>
                 <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Wali Kelas *</label><input type="text" value={newWKelas} onChange={(e) => setNewWKelas(e.target.value)} required placeholder="Budi Santoso, S.Pd" className="glass-input w-full p-2.5 text-sm" /></div>
@@ -334,6 +340,7 @@ export default function ManagementPage() {
 
           <Modal open={editKelas !== null} onClose={() => setEditKelas(null)} title="Edit Kelas">
             <form onSubmit={handleEditKelas} className="space-y-4">
+              {editKelasMsg && <div className={`p-3 rounded-[var(--radius-input)] text-sm font-semibold border ${editKelasMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{editKelasMsg.text}</div>}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama Kelas *</label><input type="text" value={editKNama} onChange={(e) => setEditKNama(e.target.value)} required className="glass-input w-full p-2.5 text-sm" /></div>
                 <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Wali Kelas *</label><input type="text" value={editWKelas} onChange={(e) => setEditWKelas(e.target.value)} required className="glass-input w-full p-2.5 text-sm" /></div>
@@ -444,6 +451,7 @@ export default function ManagementPage() {
           {/* Guru Edit Modal */}
           <Modal open={editGuru !== null} onClose={() => setEditGuru(null)} title="Edit Guru">
             <form onSubmit={handleEditGuru} className="space-y-4">
+              {editGuruMsg && <div className={`p-3 rounded-[var(--radius-input)] text-sm font-semibold border ${editGuruMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{editGuruMsg.text}</div>}
               <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Username *</label>
                 <input type="text" value={editGuruUsername} onChange={(e) => setEditGuruUsername(e.target.value)} required className="glass-input w-full p-2.5 text-sm font-mono" /></div>
               <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama *</label>
@@ -491,6 +499,7 @@ export default function ManagementPage() {
 
           <Modal open={showAddSiswa} onClose={() => setShowAddSiswa(false)} title="Tambah Akun Siswa Baru">
             <form onSubmit={handleAddSiswa} className="space-y-4">
+              {addSiswaMsg && <div className={`p-3 rounded-[var(--radius-input)] text-sm font-semibold border ${addSiswaMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{addSiswaMsg.text}</div>}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">NIS *</label><input type="text" value={fNis} onChange={(e) => setFNis(e.target.value)} required placeholder="10011" className="glass-input w-full p-2.5 text-sm" /></div>
                 <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Nama *</label><input type="text" value={fNama} onChange={(e) => setFNama(e.target.value)} required placeholder="Ahmad Fauzan" className="glass-input w-full p-2.5 text-sm" /></div>
@@ -552,6 +561,7 @@ export default function ManagementPage() {
           {/* Siswa Edit Modal */}
           <Modal open={editSiswa !== null} onClose={() => setEditSiswa(null)} title="Edit Siswa">
             <form onSubmit={handleEditSiswa} className="space-y-4">
+              {editSiswaMsg && <div className={`p-3 rounded-[var(--radius-input)] text-sm font-semibold border ${editSiswaMsg.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.2)] text-[#4ade80]' : 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[#f87171]'}`}>{editSiswaMsg.text}</div>}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">NIS *</label>
                   <input type="text" value={editSiswaNis} onChange={(e) => setEditSiswaNis(e.target.value)} required className="glass-input w-full p-2.5 text-sm font-mono" /></div>

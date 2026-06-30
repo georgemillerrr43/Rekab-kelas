@@ -5,8 +5,8 @@ import { encryptSession, getSession } from '@/lib/auth';
 
 export async function PUT(request: NextRequest) {
   const session = getSession(request);
-  if (!session) {
-    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
+  if (!session || session.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Akses ditolak. Hanya Admin.' }, { status: 403 });
   }
 
   try {
@@ -26,16 +26,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Username sudah digunakan' }, { status: 400 });
     }
 
-    // Update by role
-    if (session.role === 'ADMIN') {
-      await prisma.admin.update({ where: { id: session.userId }, data: { username: newUsername } });
-    } else if (session.role === 'GURU') {
-      await prisma.guru.update({ where: { id: session.userId }, data: { username: newUsername } });
-    } else if (session.role === 'SISWA') {
-      await prisma.siswa.update({ where: { id: session.userId }, data: { username: newUsername } });
-    } else {
-      return NextResponse.json({ error: 'Role tidak dikenal' }, { status: 400 });
-    }
+    // Only admin can change username — via this API
+    await prisma.admin.update({ where: { id: session.userId }, data: { username: newUsername } });
 
     // Rebuild session with new username
     const newSession = { ...session, username: newUsername };
