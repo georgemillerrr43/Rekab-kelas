@@ -62,8 +62,8 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // ponytail: always show the form; success screen only triggered by POST submit
-    const alreadySubmitted = false;
+    // All students have attendance recorded for this date? Show success view
+    const alreadySubmitted = kehadiran.length === students.length;
     return NextResponse.json({ students: result, alreadySubmitted });
   } catch (error) {
     return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });

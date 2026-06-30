@@ -165,10 +165,10 @@ export default function SiswaDashboard() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Foto Bukti</label>
-                  <div className="flex items-start gap-3">
-                    <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleFileChange} required className="flex-1 text-xs text-[var(--text-muted)] file:mr-3 file:py-2 file:px-4 file:rounded-[var(--radius-pill)] file:border-0 file:text-xs file:font-semibold file:bg-[rgba(99,102,241,0.1)] file:text-[var(--brand)] hover:file:bg-[rgba(99,102,241,0.18)] transition-all cursor-pointer file:transition-all" />
+                  <div className="flex flex-col sm:flex-row items-start gap-3">
+                    <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleFileChange} required className="w-full sm:flex-1 text-xs text-[var(--text-muted)] file:mr-3 file:py-2 file:px-4 file:rounded-[var(--radius-pill)] file:border-0 file:text-xs file:font-semibold file:bg-[rgba(99,102,241,0.1)] file:text-[var(--brand)] hover:file:bg-[rgba(99,102,241,0.18)] transition-all cursor-pointer file:transition-all" />
                     {formPreview && (
-                      <div className="w-14 h-14 rounded-[var(--radius-card)] overflow-hidden border border-[var(--border-default)] shrink-0 bg-[var(--bg-card)]">
+                      <div className="w-full sm:w-14 h-40 sm:h-14 rounded-[var(--radius-card)] overflow-hidden border border-[var(--border-default)] shrink-0 bg-[var(--bg-card)]">
                         <img src={formPreview} alt="" className="w-full h-full object-cover" />
                       </div>
                     )}
@@ -192,12 +192,19 @@ export default function SiswaDashboard() {
         ) : (
           <div className="space-y-2">
             {izinList.map((item) => (
-              <div key={item.id} className="p-4 border border-[var(--border-subtle)] rounded-xl flex justify-between items-start gap-4 hover:bg-[var(--bg-glass)] transition-colors">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[var(--text-secondary)] font-medium line-clamp-2">{item.alasan}</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">{new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <div key={item.id} className="p-4 border border-[var(--border-subtle)] rounded-xl hover:bg-[var(--bg-glass)] transition-colors">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-[var(--text-secondary)] font-medium line-clamp-2">{item.alasan}</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">{new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                  </div>
+                  <span className={`badge ${sb[item.statusApproval]} flex-shrink-0`}>{sl[item.statusApproval]}</span>
                 </div>
-                <span className={`badge ${sb[item.statusApproval]} flex-shrink-0`}>{sl[item.statusApproval]}</span>
+                {item.buktiFoto && (
+                  <div className="mt-3 w-full sm:w-48">
+                    <img src={item.buktiFoto} alt="Bukti" className="w-full h-32 sm:h-24 object-cover rounded-[var(--radius-card)] border border-[var(--border-default)]" />
+                  </div>
+                )}
               </div>
             ))}
           </div>

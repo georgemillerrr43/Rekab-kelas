@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
       return { id: s.id, nis: s.nis, nama: s.nama, whatsappOrangTua: s.whatsappOrangTua, status: k?.status || 'BELUM', alasan: k?.izin?.alasan || '', buktiUrl: k?.izin?.buktiFoto || '', izinAuto: false, hasPending: pendingSet.has(s.id), hasApprovedIzin: izinSt === 'APPROVED' };
     });
 
-    // ponytail: always show the form; success only from POST
-    const alreadySubmitted = false;
+    // All students have attendance recorded for this date? Show success view
+    const alreadySubmitted = kehadiranList.length === guru.kelas.siswa.length;
     return NextResponse.json({ kelas: { id: guru.kelas.id, nama: guru.kelas.nama, waliKelas: guru.kelas.waliKelas }, students, alreadySubmitted });
   } catch (e) {
     console.error('GET /api/teacher/attendance:', e);
