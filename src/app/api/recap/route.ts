@@ -76,6 +76,13 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Sort by NIS (numeric) then nama
+    result.sort((a, b) => {
+      const nisA = parseInt(a.nis) || 0;
+      const nisB = parseInt(b.nis) || 0;
+      return nisA !== nisB ? nisA - nisB : a.nama.localeCompare(b.nama, 'id');
+    });
+
     return NextResponse.json({ rekap: result });
   } catch (error) {
     return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });

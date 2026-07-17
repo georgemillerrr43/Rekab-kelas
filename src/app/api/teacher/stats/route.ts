@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
     const guru = await prisma.guru.findUnique({
       where: { id: session.userId },
-      include: { kelas: { include: { siswa: { select: { id: true } } } } },
+      include: { kelas: { include: { siswa: { select: { id: true }, orderBy: { nis: 'asc' } } } } },
     });
     if (!guru) return NextResponse.json({ error: 'Data tidak ditemukan' }, { status: 404 });
 

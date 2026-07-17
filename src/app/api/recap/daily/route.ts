@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const students = await prisma.siswa.findMany({
       where: { kelasId: kelasRecord.id },
-      orderBy: { nis: 'asc' },
+      orderBy: [{ nis: 'asc' }, { nama: 'asc' }],
     });
 
     const studentIds = students.map((s) => s.id);
@@ -34,6 +34,13 @@ export async function GET(request: NextRequest) {
         tanggal: targetDate,
       },
       include: { izin: true },
+    });
+
+    // Sort by NIS (numeric) then nama
+    students.sort((a, b) => {
+      const nisA = parseInt(a.nis) || 0;
+      const nisB = parseInt(b.nis) || 0;
+      return nisA !== nisB ? nisA - nisB : a.nama.localeCompare(b.nama, 'id');
     });
 
     const result = students.map((siswa) => {

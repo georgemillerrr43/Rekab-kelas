@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const session = getSession(req);
     if (!session || session.role !== 'GURU') return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
 
-    const guru = await prisma.guru.findUnique({ where: { id: session.userId }, include: { kelas: { include: { siswa: true } } } });
+    const guru = await prisma.guru.findUnique({ where: { id: session.userId }, include: { kelas: { include: { siswa: { orderBy: [{ nis: 'asc' }, { nama: 'asc' }] } } } } });
     if (!guru) return NextResponse.json({ error: 'Data tidak ditemukan' }, { status: 404 });
 
     const tanggal = new URL(req.url).searchParams.get('tanggal') || new Date().toISOString().split('T')[0];
@@ -61,6 +61,12 @@ export async function POST(req: NextRequest) {
     const kelasSiswaIds = new Set(guru.kelas.siswa.map(s => s.id));
     const allSiswa = await prisma.siswa.findMany({ where: { id: { in: Array.from(kelasSiswaIds) } } });
     const siswaMap = new Map(allSiswa.map(s => [s.id, s]));
+    // Numeric NIS sort for students
+    guru.kelas.siswa.sort((a: any, b: any) => {
+      const nisA = parseInt(a.nis) || 0;
+      const nisB = parseInt(b.nis) || 0;
+      return nisA !== nisB ? nisA - nisB : a.nama.localeCompare(b.nama, 'id');
+    });
     for (const item of data) {
       if (!kelasSiswaIds.has(item.siswaId)) continue;
 
