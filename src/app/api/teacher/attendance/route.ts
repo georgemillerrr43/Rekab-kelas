@@ -96,17 +96,39 @@ export async function POST(req: NextRequest) {
 
         await sendWANotif(item, tanggal, siswaMap);
       } else if (item.status === 'PKL') {
-        await prisma.kehadiran.upsert({
+        const existingKhd = await prisma.kehadiran.findUnique({
           where: { siswaId_tanggal: { siswaId: item.siswaId, tanggal: new Date(tanggal) } },
-          update: { status: item.status },
-          create: { siswaId: item.siswaId, tanggal: new Date(tanggal), status: item.status },
         });
+        if (existingKhd?.izinId) {
+          await prisma.kehadiran.update({
+            where: { id: existingKhd.id },
+            data: { status: item.status, izinId: null },
+          });
+          await prisma.izin.delete({ where: { id: existingKhd.izinId } });
+        } else {
+          await prisma.kehadiran.upsert({
+            where: { siswaId_tanggal: { siswaId: item.siswaId, tanggal: new Date(tanggal) } },
+            update: { status: item.status },
+            create: { siswaId: item.siswaId, tanggal: new Date(tanggal), status: item.status },
+          });
+        }
       } else {
-        await prisma.kehadiran.upsert({
+        const existingKhd = await prisma.kehadiran.findUnique({
           where: { siswaId_tanggal: { siswaId: item.siswaId, tanggal: new Date(tanggal) } },
-          update: { status: item.status },
-          create: { siswaId: item.siswaId, tanggal: new Date(tanggal), status: item.status },
         });
+        if (existingKhd?.izinId) {
+          await prisma.kehadiran.update({
+            where: { id: existingKhd.id },
+            data: { status: item.status, izinId: null },
+          });
+          await prisma.izin.delete({ where: { id: existingKhd.izinId } });
+        } else {
+          await prisma.kehadiran.upsert({
+            where: { siswaId_tanggal: { siswaId: item.siswaId, tanggal: new Date(tanggal) } },
+            update: { status: item.status },
+            create: { siswaId: item.siswaId, tanggal: new Date(tanggal), status: item.status },
+          });
+        }
 
         if (item.status === 'ALPA') {
           await sendWANotif(item, tanggal, siswaMap);

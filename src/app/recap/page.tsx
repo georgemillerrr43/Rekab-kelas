@@ -146,7 +146,6 @@ function RekapPageInner() {
   const totalAlpa = rekapList.reduce((a, c) => a + c.alpa, 0);
   const totalIzinSakit = rekapList.reduce((a, c) => a + c.izin + c.sakit, 0);
 
-  const sc = (s: string) => { switch (s) { case 'HADIR': return 'badge-green'; case 'IZIN': return 'badge-amber'; case 'SAKIT': return 'badge-sky'; case 'PKL': return 'badge-purple'; case 'ALPA': return 'badge-red'; default: return 'badge-gray'; } };
   const fmtDate = hTanggal ? new Date(hTanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
   const getDays = (b: string) => {
@@ -221,24 +220,24 @@ function RekapPageInner() {
             </div>
             <div className="overflow-x-auto">
               <table className="table-premium">
-                <thead><tr><th className="text-center w-16">No</th><th>NIS</th><th>Nama</th><th className="text-center">Hadir</th><th className="text-center">Izin</th><th className="text-center">Sakit</th><th className="text-center">PKL</th><th className="text-center">Alpa</th><th className="text-center w-32">% Hadir</th></tr></thead>
+                <thead><tr><th className="text-center" style={{width:'48px'}}>No</th><th style={{width:'80px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'70px'}}>Hadir</th><th className="text-center" style={{width:'60px'}}>Izin</th><th className="text-center" style={{width:'70px'}}>Sakit</th><th className="text-center" style={{width:'60px'}}>PKL</th><th className="text-center" style={{width:'60px'}}>Alpa</th><th className="text-center" style={{width:'120px'}}>% Hadir</th></tr></thead>
                 <tbody className="divide-y divide-[var(--border-subtle)]">
                   {isLoading ? <tr><td colSpan={9} className="p-10 text-center text-[var(--text-muted)] text-sm">Memuat...</td></tr>
                     : rekapList.length === 0 ? <tr><td colSpan={9} className="p-10 text-center text-[var(--text-muted)] text-sm">Belum ada data absensi bulan ini.</td></tr>
                     : rekapList.map((item, i) => (
                       <tr key={item.nis} className="hover:bg-[var(--bg-glass)] transition-colors">
                         <td className="text-center font-mono text-[var(--text-muted)]">{i + 1}</td>
-                        <td className="font-mono">{item.nis}</td>
+                        <td className="font-mono text-xs">{item.nis}</td>
                         <td><p className="font-bold text-[var(--text-primary)] text-sm">{item.nama}</p></td>
-                        <td className="text-center font-semibold text-[var(--text-secondary)]">{item.hadir}</td>
-                        <td className="text-center font-semibold text-[var(--warning)]">{item.izin}</td>
-                        <td className="text-center font-semibold text-[var(--info)]">{item.sakit}</td>
-                        <td className="text-center font-semibold text-purple-500">{(item as any).pkl || 0}</td>
-                        <td className="text-center font-semibold text-[var(--bearish)]">{item.alpa}</td>
+                        <td className="text-center font-semibold text-[var(--text-secondary)] tabular-nums">{item.hadir}</td>
+                        <td className="text-center font-semibold text-[var(--warning)] tabular-nums">{item.izin}</td>
+                        <td className="text-center font-semibold text-[var(--info)] tabular-nums">{item.sakit}</td>
+                        <td className="text-center font-semibold text-purple-400 tabular-nums">{(item as any).pkl || 0}</td>
+                        <td className="text-center font-semibold text-[var(--bearish)] tabular-nums">{item.alpa}</td>
                         <td className="text-center">
-                          <div className="flex flex-col items-center">
-                            <span className={`text-sm font-bold ${item.persentase >= 90 ? 'text-[var(--bullish)]' : item.persentase >= 75 ? 'text-[var(--warning)]' : 'text-[var(--bearish)]'}`}>{item.persentase}%</span>
-                            <div className="w-20 progress-bar mt-1"><div className={`progress-bar-fill ${item.persentase >= 90 ? 'bg-[var(--bullish)]' : item.persentase >= 75 ? 'bg-[var(--warning)]' : 'bg-[var(--bearish)]'}`} style={{ width: `${item.persentase}%` }} /></div>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className={`text-xs font-bold tracking-tight ${item.persentase >= 90 ? 'text-[var(--bullish)]' : item.persentase >= 75 ? 'text-[var(--warning)]' : 'text-[var(--bearish)]'}`}>{item.persentase}%</span>
+                            <div className="w-full max-w-[80px] h-1.5 rounded-full bg-[var(--bg-glass)] overflow-hidden"><div className={`h-full rounded-full transition-all duration-300 ${item.persentase >= 90 ? 'bg-[var(--bullish)]' : item.persentase >= 75 ? 'bg-[var(--warning)]' : 'bg-[var(--bearish)]'}`} style={{ width: `${item.persentase}%` }} /></div>
                           </div>
                         </td>
                       </tr>
@@ -316,34 +315,91 @@ function RekapPageInner() {
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                     {[
-                      { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]' },
-                      { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]' },
-                      { label: 'Sakit', value: hSummary.sakit, color: 'text-[var(--info)]' },
-                      { label: 'PKL', value: hSummary.pkl || 0, color: 'text-purple-500' },
-                      { label: 'Alpa', value: hSummary.alpa, color: 'text-[var(--bearish)]' },
-                      { label: 'Total', value: hSummary.total, color: 'text-[var(--text-primary)]' },
-                    ].map((s) => (<div key={s.label} className="stat-card p-4"><p className="label">{s.label}</p><p className={`value text-lg ${s.color}`}>{s.value}</p></div>))}
+                      { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]', icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+                      { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]', icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z' },
+                      { label: 'Sakit', value: hSummary.sakit, color: 'text-[var(--info)]', icon: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z' },
+                      { label: 'PKL', value: hSummary.pkl || 0, color: 'text-purple-400', icon: 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z' },
+                      { label: 'Alpa', value: hSummary.alpa, color: 'text-[var(--bearish)]', icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z' },
+                      { label: 'Total', value: hSummary.total, color: 'text-[var(--text-primary)]', icon: 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z' },
+                    ].map((s) => (
+                      <div key={s.label} className="stat-card p-4 flex items-start gap-3">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          s.label === 'Hadir' ? 'bg-[rgba(34,197,94,0.12)]' :
+                          s.label === 'Izin' ? 'bg-[rgba(245,158,11,0.12)]' :
+                          s.label === 'Sakit' ? 'bg-[rgba(6,182,212,0.12)]' :
+                          s.label === 'PKL' ? 'bg-[rgba(168,85,247,0.12)]' :
+                          s.label === 'Alpa' ? 'bg-[rgba(239,68,68,0.12)]' :
+                          'bg-[var(--bg-glass)]'
+                        }`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-4.5 h-4.5 ${s.color}`}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{s.label}</p>
+                          <p className={`text-xl font-extrabold tracking-tight mt-0.5 ${s.color}`}>{s.value}</p>
+                          <div className="h-1 rounded-full bg-[var(--bg-glass)] mt-2 overflow-hidden">
+                            <div className={`h-full rounded-full transition-all duration-500 ${
+                              s.label === 'Hadir' ? 'bg-[var(--bullish)]' :
+                              s.label === 'Izin' ? 'bg-[var(--warning)]' :
+                              s.label === 'Sakit' ? 'bg-[var(--info)]' :
+                              s.label === 'PKL' ? 'bg-purple-500' :
+                              s.label === 'Alpa' ? 'bg-[var(--bearish)]' :
+                              'bg-[var(--brand)]'
+                            }`} style={{ width: `${hSummary.total > 0 ? (s.value / hSummary.total) * 100 : 0}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="glass-card overflow-hidden">
-                    <div className="px-6 py-4 border-b border-[var(--border-subtle)]"><h3 className="font-bold text-[var(--text-primary)] text-base">Kehadiran Per Hari</h3><p className="text-xs text-[var(--text-muted)]">{fmtDate} — {selectedKelasNama || hKelas}{waliKelas ? ` — Wali Kelas: ${waliKelas}` : ''}</p></div>
+                    <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h3 className="font-bold text-[var(--text-primary)] text-base">Daftar Kehadiran Harian</h3>
+                        <p className="text-xs text-[var(--text-muted)]">{fmtDate} — {selectedKelasNama || hKelas}{waliKelas ? ` — ${waliKelas}` : ''}</p>
+                      </div>
+                      <button onClick={() => exportDailyPDF(hStudents, selectedKelasNama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary px-4 py-1.5 text-xs font-semibold disabled:opacity-40 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                        Export PDF
+                      </button>
+                    </div>
                     <div className="overflow-x-auto">
                       <table className="table-premium">
-                        <thead><tr><th className="text-center w-16">No</th><th>NIS</th><th>Nama</th><th className="text-center">Status</th><th>Keterangan</th></tr></thead>
+                        <thead><tr><th className="text-center" style={{width:'48px'}}>No</th><th style={{width:'80px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'100px'}}>Status</th><th>Keterangan</th></tr></thead>
                         <tbody className="divide-y divide-[var(--border-subtle)]">
                           {hStudents.map((s, idx) => (
                             <tr key={s.siswaId} className="hover:bg-[var(--bg-glass)] transition-colors">
-                              <td className="text-center font-mono text-[var(--text-muted)]">{idx + 1}</td>
-                              <td className="font-mono">{s.nis}</td>
+                              <td className="text-center font-mono text-[var(--text-muted)] text-xs">{idx + 1}</td>
+                              <td className="font-mono text-xs">{s.nis}</td>
                               <td><p className="font-bold text-[var(--text-primary)] text-sm">{s.nama}</p></td>
-                              <td className="text-center"><span className={`badge ${sc(s.status)}`}>{s.status === 'BELUM' ? 'Belum' : s.status}</span></td>
+                              <td className="text-center">
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                                  s.status === 'HADIR' ? 'bg-[rgba(34,197,94,0.12)] text-[#4ade80] border border-[rgba(34,197,94,0.2)]' :
+                                  s.status === 'IZIN' ? 'bg-[rgba(245,158,11,0.12)] text-[#fbbf24] border border-[rgba(245,158,11,0.2)]' :
+                                  s.status === 'SAKIT' ? 'bg-[rgba(6,182,212,0.12)] text-[#67e8f9] border border-[rgba(6,182,212,0.2)]' :
+                                  s.status === 'PKL' ? 'bg-[rgba(168,85,247,0.12)] text-[#c084fc] border border-[rgba(168,85,247,0.2)]' :
+                                  s.status === 'ALPA' ? 'bg-[rgba(239,68,68,0.12)] text-[#f87171] border border-[rgba(239,68,68,0.2)]' :
+                                  'bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] border border-[var(--border-default)]'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${
+                                    s.status === 'HADIR' ? 'bg-[#4ade80]' :
+                                    s.status === 'IZIN' ? 'bg-[#fbbf24]' :
+                                    s.status === 'SAKIT' ? 'bg-[#67e8f9]' :
+                                    s.status === 'PKL' ? 'bg-[#c084fc]' :
+                                    s.status === 'ALPA' ? 'bg-[#f87171]' :
+                                    'bg-[var(--text-muted)]'
+                                  }`} />
+                                  {s.status === 'BELUM' ? 'Belum' : s.status}
+                                </span>
+                              </td>
                               <td>
                                 <div className="flex items-center gap-2">
-                                  <span>{s.alasan || <span className="opacity-30">-</span>}</span>
+                                  <span className="text-sm">{s.alasan || <span className="text-[var(--text-muted)] opacity-40">-</span>}</span>
                                   {(s.status === 'IZIN' || s.status === 'SAKIT') && s.buktiUrl && (
                                     <button onClick={() => setSelectedPhoto(s.buktiUrl.startsWith('/uploads') ? s.buktiUrl.replace('/uploads', '/api/uploads') : s.buktiUrl)}
-                                      className="px-2 py-1 text-[10px] font-bold text-[var(--text-accent)] bg-[rgba(59,130,246,0.1)] hover:bg-[rgba(59,130,246,0.15)] rounded-lg border border-[rgba(59,130,246,0.2)] transition-all ml-auto shrink-0">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375 3.75 0 1 1-.75 0 .375 3.75 0 0 1 .75 0Z" /></svg>
+                                      className="px-2.5 py-1 text-[10px] font-bold text-[var(--text-accent)] bg-[rgba(59,130,246,0.1)] hover:bg-[rgba(59,130,246,0.15)] rounded-lg border border-[rgba(59,130,246,0.2)] transition-all ml-auto shrink-0">
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375 3.375 0 1 1-.75 0 .375 3.375 0 0 1 .75 0Z" /></svg>
                                       Foto
                                     </button>
                                   )}

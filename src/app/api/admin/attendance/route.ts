@@ -107,8 +107,9 @@ export async function POST(request: NextRequest) {
         if (existingKhd?.izinId) {
           await prisma.kehadiran.update({
             where: { id: existingKhd.id },
-            data: { status, izin: { delete: true } },
+            data: { status, izinId: null },
           });
+          await prisma.izin.delete({ where: { id: existingKhd.izinId } });
         } else {
           await prisma.kehadiran.upsert({
             where: { siswaId_tanggal: { siswaId, tanggal: targetDate } },

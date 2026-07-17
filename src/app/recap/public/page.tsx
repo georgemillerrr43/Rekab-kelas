@@ -5,6 +5,8 @@ import { exportAttendanceToPDF } from '@/utils/pdfExport';
 
 interface RekapItem { nis: string; nama: string; hadir: number; izin: number; sakit: number; alpa: number; pkl: number; persentase: number; totalHari: number; }
 interface KelasItem { id: string; nama: string; waliKelas: string; }
+interface DailyStudent { siswaId: string; nis: string; nama: string; status: string; alasan: string; buktiUrl: string; }
+interface DailySummary { hadir: number; izin: number; sakit: number; alpa: number; pkl: number; belum: number; total: number; }
 
 const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
@@ -20,6 +22,57 @@ function getMonthOptions(): string[] {
 const MONTH_OPTIONS = getMonthOptions();
 function getDefaultMonth() { return MONTH_OPTIONS[0]; }
 
+function monthToInfo(m: string): { month: number; year: number } {
+  const p = m.split(' ');
+  return { month: MONTHS_ID.indexOf(p[0]), year: parseInt(p[1]) || new Date().getFullYear() };
+}
+
+function exportDailyPDF(students: DailyStudent[], kelas: string, tanggal: string) {
+  if (!kelas) return;
+  import('jspdf').then((m) => {
+    import('jspdf-autotable').then(() => {
+      const { default: jsPDF } = m;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pc: [number, number, number] = [30, 41, 59];
+      doc.setFont('Helvetica', 'bold'); doc.setFontSize(16);
+      doc.setTextColor(pc[0], pc[1], pc[2]);
+      doc.text('LAPORAN REKAP KEHADIRAN HARIAN', 14, 20);
+      doc.setFont('Helvetica', 'normal'); doc.setFontSize(10);
+      doc.text('Sistem Informasi Akademik & Manajemen Absensi', 14, 25);
+      doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.5); doc.line(14, 28, 196, 28);
+
+      const fd = new Date(tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      doc.setFontSize(10); doc.setFont('Helvetica', 'bold');
+      doc.text('Informasi Laporan:', 14, 36); doc.setFont('Helvetica', 'normal');
+      doc.text(`Kelas: ${kelas.replace(/-/g, ' ')}`, 14, 42);
+      doc.text(`Tanggal: ${fd}`, 110, 42);
+      const h = students.filter(s => s.status === 'HADIR').length;
+      const iz = students.filter(s => s.status === 'IZIN').length;
+      const sk = students.filter(s => s.status === 'SAKIT').length;
+      const pkl = students.filter(s => s.status === 'PKL').length;
+      const al = students.filter(s => s.status === 'ALPA').length;
+      doc.text(`Hadir: ${h}  |  Izin: ${iz}  |  Sakit: ${sk}  |  PKL: ${pkl}  |  Alpa: ${al}  |  Total: ${students.length}`, 14, 48);
+
+      const hd = [[{ content: 'No', styles: { halign: 'center' } }, 'NIS', 'Nama Siswa', { content: 'Status', styles: { halign: 'center' } }, 'Keterangan']];
+      const rows = students.map((s, i) => [
+        { content: (i + 1).toString(), styles: { halign: 'center' } }, s.nis, s.nama,
+        { content: s.status === 'BELUM' ? '-' : s.status, styles: { halign: 'center', fontStyle: 'bold', textColor: s.status === 'HADIR' ? [16, 185, 129] : s.status === 'IZIN' ? [245, 158, 11] : s.status === 'SAKIT' ? [14, 165, 233] : s.status === 'PKL' ? [168, 85, 247] : s.status === 'ALPA' ? [225, 29, 72] : [100, 116, 139] } },
+        s.alasan || '-',
+      ]);
+
+      (doc as any).autoTable({
+        startY: 55, head: hd, body: rows, theme: 'grid',
+        headStyles: { fillColor: pc, textColor: [255, 255, 255], fontSize: 10, fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 25 }, 2: { cellWidth: 60 }, 3: { cellWidth: 25 }, 4: { cellWidth: 60 } },
+        styles: { font: 'Helvetica', fontSize: 9, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [241, 245, 249] },
+        margin: { left: 14, right: 14 },
+      });
+      doc.save(`rekap_harian_${kelas.replace(/[^a-z0-9]/gi, '_')}_${tanggal.replace(/[^0-9-]/g, '')}.pdf`);
+    });
+  });
+}
+
 export default function PublicRekapPage() {
   const [list, setList] = useState<RekapItem[]>([]);
   const [kelasList, setKelasList] = useState<KelasItem[]>([]);
@@ -27,6 +80,16 @@ export default function PublicRekapPage() {
   const [bulan, setBulan] = useState(getDefaultMonth());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  // Daily recap state
+  const [tab, setTab] = useState<'bulanan' | 'harian'>('bulanan');
+  const [hKelas, setHKelas] = useState('');
+  const [hBulan, setHBulan] = useState(getDefaultMonth());
+  const [hTanggal, setHTanggal] = useState<string | null>(null);
+  const [hStudents, setHStudents] = useState<DailyStudent[]>([]);
+  const [hSummary, setHSummary] = useState<DailySummary>({ hadir: 0, izin: 0, sakit: 0, alpa: 0, pkl: 0, belum: 0, total: 0 });
+  const [hLoading, setHLoading] = useState(false);
+  const [hFetched, setHFetched] = useState(false);
+  const [filledDates, setFilledDates] = useState<string[]>([]);
 
   // Fetch kelas list
   useEffect(() => {
@@ -37,13 +100,13 @@ export default function PublicRekapPage() {
         const data = await res.json();
         const arr = data.kelas || [];
         setKelasList(arr);
-        if (arr.length > 0) setKelasId(arr[0].id);
+        if (arr.length > 0) { setKelasId(arr[0].id); setHKelas(arr[0].id); }
         else setError('Belum ada kelas tersedia.');
       } catch { setError('Gagal terhubung ke server.'); } finally { setIsLoading(false); }
     })();
   }, []);
 
-  // Fetch rekap when kelasId or bulan changes
+  // Fetch rekap bulanan
   useEffect(() => {
     if (!kelasId) return;
     (async () => {
@@ -56,7 +119,27 @@ export default function PublicRekapPage() {
     })();
   }, [kelasId, bulan]);
 
+  // Fetch daily students
+  useEffect(() => {
+    if (tab !== 'harian' || !hTanggal || !hKelas) { setHStudents([]); setHFetched(false); return; }
+    (async () => {
+      setHLoading(true);
+      try {
+        const res = await fetch(`/api/recap/daily?tanggal=${hTanggal}&kelas=${hKelas}`);
+        const d = await res.json();
+        setHStudents(d.students || []); setHSummary(d.summary || { hadir: 0, izin: 0, sakit: 0, alpa: 0, pkl: 0, belum: 0, total: 0 }); setHFetched(true);
+      } catch { /* empty */ } finally { setHLoading(false); }
+    })();
+  }, [hKelas, hTanggal, tab]);
+
+  // Fetch filled dates
+  useEffect(() => {
+    if (tab !== 'harian' || !hKelas) return;
+    (async () => { try { const res = await fetch(`/api/recap/daily/status?kelas=${hKelas}&bulan=${hBulan}`); if (res.ok) setFilledDates((await res.json()).filledDates || []); } catch { /* empty */ } })();
+  }, [hKelas, hBulan, tab]);
+
   const selectedKelas = kelasList.find((k) => k.id === kelasId);
+  const selectedHKelas = kelasList.find((k) => k.id === hKelas);
 
   const handleExportPDF = () => {
     const wk = selectedKelas?.waliKelas || '';
@@ -64,14 +147,40 @@ export default function PublicRekapPage() {
     exportAttendanceToPDF(list, { kelas: namaKelas, periode: bulan, waliKelas: wk || '-' });
   };
 
+  const getDays = (b: string) => {
+    const info = monthToInfo(b);
+    const d = new Date(info.year, info.month, 1); const days = [];
+    while (d.getMonth() === info.month) {
+      const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
+      days.push({ dateStr: `${y}-${m}-${dd}`, dayNum: d.getDate(), displayDate: d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) });
+      d.setDate(d.getDate() + 1);
+    }
+    return days;
+  };
+
+  const fmtDate = hTanggal ? new Date(hTanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="page-header">
         <span className="badge badge-gray mb-2">Publik</span>
         <h1>Rekapitulasi Kehadiran</h1>
-        <p>Akses publik tanpa login. Unduh PDF untuk arsip.</p>
+        <p>Akses publik tanpa login. Lihat rekap dan unduh PDF.</p>
       </div>
 
+      <div className="tab-switcher">
+        <button onClick={() => setTab('bulanan')} className={tab === 'bulanan' ? 'active' : ''}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+          Rekap Bulanan
+        </button>
+        <button onClick={() => setTab('harian')} className={tab === 'harian' ? 'active' : ''}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+          Rekap Harian
+        </button>
+      </div>
+
+      {tab === 'bulanan' && (
+        <>
       <div className="glass-card p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -118,13 +227,13 @@ export default function PublicRekapPage() {
               ) : list.map((item, i) => (
                 <tr key={item.nis} className="hover:bg-[var(--bg-glass)]">
                   <td className="text-center text-[var(--text-muted)]">{i + 1}</td>
-                  <td className="font-mono">{item.nis}</td>
+                  <td className="font-mono text-xs">{item.nis}</td>
                   <td><span className="font-bold text-[var(--text-primary)] text-sm">{item.nama}</span></td>
-                  <td className="text-center text-[var(--text-secondary)]">{item.hadir}</td>
-                  <td className="text-center text-[var(--warning)]">{item.izin}</td>
-                  <td className="text-center text-[var(--info)]">{item.sakit}</td>
-                  <td className="text-center font-semibold text-purple-500">{item.pkl || 0}</td>
-                  <td className="text-center text-[var(--bearish)]">{item.alpa}</td>
+                  <td className="text-center font-semibold text-[var(--text-secondary)] tabular-nums">{item.hadir}</td>
+                  <td className="text-center font-semibold text-[var(--warning)] tabular-nums">{item.izin}</td>
+                  <td className="text-center font-semibold text-[var(--info)] tabular-nums">{item.sakit}</td>
+                  <td className="text-center font-semibold text-purple-400 tabular-nums">{item.pkl || 0}</td>
+                  <td className="text-center font-semibold text-[var(--bearish)] tabular-nums">{item.alpa}</td>
                   <td className="text-center"><span className={`text-sm font-bold ${item.persentase >= 90 ? 'text-[var(--bullish)]' : item.persentase >= 75 ? 'text-[var(--warning)]' : 'text-[var(--bearish)]'}`}>{item.persentase}%</span></td>
                 </tr>
               ))}
@@ -132,6 +241,141 @@ export default function PublicRekapPage() {
           </table>
         </div>
       </div>
+      </>
+      )}
+
+      {tab === 'harian' && (
+        <>
+      <div className="glass-card p-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Kelas</label>
+            <select value={hKelas} onChange={(e) => setHKelas(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm">
+              {isLoading ? <option>Memuat...</option> : kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Bulan</label>
+            <select value={hBulan} onChange={(e) => { setHBulan(e.target.value); setHTanggal(null); }} className="glass-select w-full p-2 rounded-lg text-sm">{MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}</select>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-card p-6">
+        <h3 className="text-sm font-bold text-[var(--text-primary)] mb-4 uppercase tracking-wider">Pilih Tanggal</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {getDays(hBulan).map((day) => {
+            const active = hTanggal === day.dateStr;
+            const filled = filledDates.includes(day.dateStr);
+            return (
+              <button key={day.dateStr} onClick={() => setHTanggal(day.dateStr)}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all relative overflow-hidden ${active ? 'border-[var(--brand)] bg-[var(--bg-glass)] text-[var(--text-primary)] ring-1 ring-[var(--brand)]' : 'border-[var(--border-subtle)] bg-[var(--bg-glass)] text-[var(--text-muted)] hover:border-[var(--border-default)]'}`}>
+                <span className={`absolute top-1 right-2 text-xs font-black ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? '✓' : '✗'}</span>
+                <span className="text-[10px] font-semibold uppercase">{day.displayDate.split(',')[0]}</span>
+                <span className="text-lg font-extrabold mt-0.5">{day.dayNum}</span>
+                <span className={`text-[8px] font-bold mt-1.5 uppercase tracking-wider ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? 'Tersedia' : 'Kosong'}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {hTanggal ? (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center glass-card p-5 gap-3">
+            <div><h3 className="font-bold text-[var(--text-primary)] text-sm">Laporan: {fmtDate}</h3><p className="text-xs text-[var(--text-muted)]">{selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}{selectedHKelas?.waliKelas ? ` — ${selectedHKelas.waliKelas}` : ''}</p></div>
+            <button onClick={() => exportDailyPDF(hStudents, selectedHKelas?.nama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary px-5 py-2 text-sm font-semibold disabled:opacity-40">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+              Export PDF
+            </button>
+          </div>
+
+          {hLoading ? (
+            <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Memuat data...</div>
+          ) : !hFetched ? (
+            <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Pilih tanggal untuk melihat data.</div>
+          ) : hStudents.length === 0 ? (
+            <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Tidak ada data absensi untuk tanggal ini.</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                {[
+                  { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]', bg: 'bg-[rgba(34,197,94,0.12)]' },
+                  { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]', bg: 'bg-[rgba(245,158,11,0.12)]' },
+                  { label: 'Sakit', value: hSummary.sakit, color: 'text-[var(--info)]', bg: 'bg-[rgba(6,182,212,0.12)]' },
+                  { label: 'PKL', value: hSummary.pkl || 0, color: 'text-purple-400', bg: 'bg-[rgba(168,85,247,0.12)]' },
+                  { label: 'Alpa', value: hSummary.alpa, color: 'text-[var(--bearish)]', bg: 'bg-[rgba(239,68,68,0.12)]' },
+                  { label: 'Total', value: hSummary.total, color: 'text-[var(--text-primary)]', bg: 'bg-[var(--bg-glass)]' },
+                ].map((s) => (
+                  <div key={s.label} className="stat-card p-4 flex items-start gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${s.bg}`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-4.5 h-4.5 ${s.color}`}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d={
+                          s.label === 'Hadir' ? 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z' :
+                          s.label === 'Izin' ? 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z' :
+                          s.label === 'Sakit' ? 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z' :
+                          s.label === 'PKL' ? 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25' :
+                          s.label === 'Alpa' ? 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z' :
+                          'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766'
+                        } />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{s.label}</p>
+                      <p className={`text-xl font-extrabold tracking-tight mt-0.5 ${s.color}`}>{s.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="glass-card overflow-hidden">
+                <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
+                  <h3 className="font-bold text-[var(--text-primary)] text-base">Daftar Kehadiran</h3>
+                  <p className="text-xs text-[var(--text-muted)]">{fmtDate} — {selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="table-premium">
+                    <thead><tr><th className="text-center w-12">No</th><th>NIS</th><th>Nama</th><th className="text-center">Status</th><th>Keterangan</th></tr></thead>
+                    <tbody className="divide-y divide-[var(--border-subtle)]">
+                      {hStudents.map((s, idx) => (
+                        <tr key={s.siswaId} className="hover:bg-[var(--bg-glass)] transition-colors">
+                          <td className="text-center font-mono text-[var(--text-muted)] text-xs">{idx + 1}</td>
+                          <td className="font-mono text-xs">{s.nis}</td>
+                          <td><p className="font-bold text-[var(--text-primary)] text-sm">{s.nama}</p></td>
+                          <td className="text-center">
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                              s.status === 'HADIR' ? 'bg-[rgba(34,197,94,0.12)] text-[#4ade80] border border-[rgba(34,197,94,0.2)]' :
+                              s.status === 'IZIN' ? 'bg-[rgba(245,158,11,0.12)] text-[#fbbf24] border border-[rgba(245,158,11,0.2)]' :
+                              s.status === 'SAKIT' ? 'bg-[rgba(6,182,212,0.12)] text-[#67e8f9] border border-[rgba(6,182,212,0.2)]' :
+                              s.status === 'PKL' ? 'bg-[rgba(168,85,247,0.12)] text-[#c084fc] border border-[rgba(168,85,247,0.2)]' :
+                              s.status === 'ALPA' ? 'bg-[rgba(239,68,68,0.12)] text-[#f87171] border border-[rgba(239,68,68,0.2)]' :
+                              'bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] border border-[var(--border-default)]'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${
+                                s.status === 'HADIR' ? 'bg-[#4ade80]' :
+                                s.status === 'IZIN' ? 'bg-[#fbbf24]' :
+                                s.status === 'SAKIT' ? 'bg-[#67e8f9]' :
+                                s.status === 'PKL' ? 'bg-[#c084fc]' :
+                                s.status === 'ALPA' ? 'bg-[#f87171]' : 'bg-[var(--text-muted)]'
+                              }`} />
+                              {s.status === 'BELUM' ? 'Belum' : s.status}
+                            </span>
+                          </td>
+                          <td><span className="text-sm">{s.alasan || <span className="text-[var(--text-muted)] opacity-40">-</span>}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="glass-card p-8 text-center text-[var(--text-muted)] font-semibold">Pilih tanggal untuk melihat rekap harian.</div>
+      )}
+      </>
+      )}
 
       <div className="text-center py-4">
         <p className="text-xs text-[var(--text-muted)]">Data publik. Untuk kelola absensi <a href="/login" className="text-[var(--text-accent)] hover:underline">login</a>.</p>

@@ -12,6 +12,7 @@ export default function GuruAttendanceForm() {
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sortMode, setSortMode] = useState<'nis' | 'abjad'>('nis');
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -83,21 +84,21 @@ export default function GuruAttendanceForm() {
 
   const statusBtns = (id: string, cur: Status, layout: 'row' | 'grid') => {
     const btns = [
-      { l: 'Hadir', v: 'HADIR' as Status, a: 'bg-[var(--bullish)] text-white', b: 'text-[var(--bullish)] border-[rgba(34,197,94,0.2)]' },
-      { l: 'Izin', v: 'IZIN' as Status, a: 'bg-[var(--warning)] text-white', b: 'text-[var(--warning)] border-[rgba(245,158,11,0.2)]' },
-      { l: 'Sakit', v: 'SAKIT' as Status, a: 'bg-[var(--info)] text-white', b: 'text-[var(--info)] border-[rgba(6,182,212,0.2)]' },
-      { l: 'PKL', v: 'PKL' as Status, a: 'bg-purple-600 text-white', b: 'text-purple-500 border-purple-300/30' },
-      { l: 'Alpa', v: 'ALPA' as Status, a: 'bg-[var(--bearish)] text-white', b: 'text-[var(--bearish)] border-[rgba(239,68,68,0.2)]' },
+      { l: 'Hadir', v: 'HADIR' as Status, a: 'bg-gradient-to-r from-emerald-500 to-[var(--bullish)] text-white shadow-sm shadow-emerald-500/20', b: 'text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/10' },
+      { l: 'Izin', v: 'IZIN' as Status, a: 'bg-gradient-to-r from-amber-500 to-[var(--warning)] text-white shadow-sm shadow-amber-500/20', b: 'text-amber-400 border-amber-500/25 hover:bg-amber-500/10' },
+      { l: 'Sakit', v: 'SAKIT' as Status, a: 'bg-gradient-to-r from-cyan-500 to-[var(--info)] text-white shadow-sm shadow-cyan-500/20', b: 'text-cyan-400 border-cyan-400/25 hover:bg-cyan-500/10' },
+      { l: 'PKL', v: 'PKL' as Status, a: 'bg-gradient-to-r from-purple-600 to-violet-500 text-white shadow-sm shadow-purple-500/20', b: 'text-purple-400 border-purple-400/25 hover:bg-purple-500/10' },
+      { l: 'Alpa', v: 'ALPA' as Status, a: 'bg-gradient-to-r from-red-500 to-[var(--bearish)] text-white shadow-sm shadow-red-500/20', b: 'text-red-400 border-red-500/25 hover:bg-red-500/10' },
     ];
     if (layout === 'row') {
       return btns.map(b => (
         <button key={b.v} type="button" onClick={() => handleStatus(id, b.v)}
-          className={`btn-pill-sm ${cur === b.v ? b.a : b.b}`}>{b.l}</button>
+          className={`btn-pill-sm transition-all duration-200 ${cur === b.v ? b.a : `${b.b} bg-[var(--bg-glass)]`}`}>{b.l}</button>
       ));
     }
     return btns.map(b => (
       <button key={b.v} type="button" onClick={() => handleStatus(id, b.v)}
-        className={`py-2.5 text-center text-xs font-semibold rounded-[var(--radius-pill)] border transition-all ${cur === b.v ? b.a : b.b}`}>{b.l}</button>
+        className={`py-2.5 text-center text-xs font-semibold rounded-[var(--radius-pill)] border transition-all duration-200 ${cur === b.v ? b.a : `${b.b} bg-[var(--bg-glass)]`}`}>{b.l}</button>
     ));
   };
 
@@ -147,12 +148,26 @@ export default function GuruAttendanceForm() {
           {msg && <div className={`p-4 rounded-[var(--radius-input)] text-sm ${msg.type === 'error' ? 'bg-[rgba(239,68,68,0.1)] text-[#f87171] border border-[rgba(239,68,68,0.2)]' : ''}`}>{msg.text}</div>}
           {students.length === 0 ? <div className="text-center py-10 text-[var(--text-muted)]">Belum ada siswa.</div> : (
             <>
+              {/* Sort buttons */}
+              <div className="flex items-center gap-2 mb-4 px-1">
+                <span className="text-xs font-semibold text-[var(--text-muted)]">Urut:</span>
+                <button type="button" onClick={() => setSortMode('nis')}
+                  className={`px-3 py-1 text-xs font-bold rounded-full border transition-all ${sortMode === 'nis' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)] hover:border-[var(--brand)]'}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5" /></svg>
+                  NIS
+                </button>
+                <button type="button" onClick={() => setSortMode('abjad')}
+                  className={`px-3 py-1 text-xs font-bold rounded-full border transition-all ${sortMode === 'abjad' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)] hover:border-[var(--brand)]'}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                  A-Z
+                </button>
+              </div>
               {/* Desktop: table */}
               <div className="hidden md:block overflow-x-auto glass rounded-[var(--radius-card)]">
                 <table className="table-premium">
                   <thead><tr><th className="text-center">NIS</th><th>Nama</th><th className="text-center">Kehadiran</th><th>Keterangan</th></tr></thead>
                   <tbody className="divide-y divide-[var(--border-subtle)]">
-                    {students.map(s => (
+                    {[...students].sort((a, b) => sortMode === 'abjad' ? a.nama.localeCompare(b.nama, 'id') : (parseInt(a.nis)||0)-(parseInt(b.nis)||0)).map(s => (
                       <tr key={s.id} className="hover:bg-[var(--bg-glass)] transition-colors">
                         <td className="text-center font-mono">{s.nis}</td>
                         <td><span className="font-semibold text-[var(--text-primary)] text-sm">{s.nama}{(s as any).hasPending && <button type="button" onClick={() => router.push('/teacher/approval')} className="ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(245,158,11,0.12)] text-[var(--warning)] border border-[rgba(245,158,11,0.2)] hover:bg-[rgba(245,158,11,0.2)] transition-colors">Izin Diajukan</button>}{(s as any).hasApprovedIzin && <button type="button" onClick={() => router.push('/teacher/approval')} className="ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(34,197,94,0.12)] text-[var(--bullish)] border border-[rgba(34,197,94,0.2)] hover:bg-[rgba(34,197,94,0.18)] transition-colors">Izin Disetujui</button>}</span></td>
@@ -166,7 +181,7 @@ export default function GuruAttendanceForm() {
 
               {/* Mobile: cards */}
               <div className="md:hidden space-y-4">
-                {students.map(s => (
+                {[...students].sort((a, b) => sortMode === 'abjad' ? a.nama.localeCompare(b.nama, 'id') : (parseInt(a.nis)||0)-(parseInt(b.nis)||0)).map(s => (
                   <div key={s.id} className="p-4 glass rounded-[var(--radius-card)] space-y-3">
                     <p className="font-bold text-[var(--text-primary)] text-sm">{s.nama}{(s as any).hasPending && <button type="button" onClick={() => router.push('/teacher/approval')} className="ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(245,158,11,0.12)] text-[var(--warning)] border border-[rgba(245,158,11,0.2)] hover:bg-[rgba(245,158,11,0.2)] transition-colors">Izin Diajukan</button>}{(s as any).hasApprovedIzin && <button type="button" onClick={() => router.push('/teacher/approval')} className="ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(34,197,94,0.12)] text-[var(--bullish)] border border-[rgba(34,197,94,0.2)] hover:bg-[rgba(34,197,94,0.18)] transition-colors">Izin Disetujui</button>}</p>
                     <p className="text-[var(--text-muted)] text-xs">NIS: {s.nis}</p>
