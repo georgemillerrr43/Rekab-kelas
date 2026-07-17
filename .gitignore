@@ -64,6 +64,7 @@ public/uploads/temp/*
 # Claude AI & Agents (Personal)
 .claude/
 .agents/
+.claude-flow/
 
 # Misc
 .cache/
