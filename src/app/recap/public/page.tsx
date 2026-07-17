@@ -298,31 +298,24 @@ export default function PublicRekapPage() {
             <div className="text-center py-8 md:py-10 text-[var(--text-muted)] font-semibold text-sm">Tidak ada data absensi untuk tanggal ini.</div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
                 {[
-                  { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]', bg: 'bg-[rgba(34,197,94,0.12)]' },
-                  { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]', bg: 'bg-[rgba(245,158,11,0.12)]' },
-                  { label: 'Sakit', value: hSummary.sakit, color: 'text-[var(--info)]', bg: 'bg-[rgba(6,182,212,0.12)]' },
-                  { label: 'PKL', value: hSummary.pkl || 0, color: 'text-purple-400', bg: 'bg-[rgba(168,85,247,0.12)]' },
-                  { label: 'Alpa', value: hSummary.alpa, color: 'text-[var(--bearish)]', bg: 'bg-[rgba(239,68,68,0.12)]' },
-                  { label: 'Total', value: hSummary.total, color: 'text-[var(--text-primary)]', bg: 'bg-[var(--bg-glass)]' },
+                  { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]', icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z', bg: 'bg-[rgba(34,197,94,0.12)]' },
+                  { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]', icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z', bg: 'bg-[rgba(245,158,11,0.12)]' },
+                  { label: 'Sakit', value: hSummary.sakit, color: 'text-[var(--info)]', icon: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z', bg: 'bg-[rgba(6,182,212,0.12)]' },
+                  { label: 'PKL', value: hSummary.pkl || 0, color: 'text-purple-400', icon: 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z', bg: 'bg-[rgba(168,85,247,0.12)]' },
+                  { label: 'Alpa', value: hSummary.alpa, color: 'text-[var(--bearish)]', icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z', bg: 'bg-[rgba(239,68,68,0.12)]' },
+                  { label: 'Total', value: hSummary.total, color: 'text-[var(--text-primary)]', icon: 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z', bg: 'bg-[var(--bg-glass)]' },
                 ].map((s) => (
-                  <div key={s.label} className="stat-card p-4 flex items-start gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${s.bg}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-4.5 h-4.5 ${s.color}`}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d={
-                          s.label === 'Hadir' ? 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z' :
-                          s.label === 'Izin' ? 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z' :
-                          s.label === 'Sakit' ? 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z' :
-                          s.label === 'PKL' ? 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25' :
-                          s.label === 'Alpa' ? 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z' :
-                          'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766'
-                        } />
+                  <div key={s.label} className="stat-card p-3 md:p-4 flex items-start gap-2 md:gap-3">
+                    <div className={`w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center shrink-0 ${s.bg}`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 md:w-4.5 md:h-4.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{s.label}</p>
-                      <p className={`text-xl font-extrabold tracking-tight mt-0.5 ${s.color}`}>{s.value}</p>
+                      <p className="text-[9px] md:text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{s.label}</p>
+                      <p className={`text-base md:text-xl font-extrabold tracking-tight mt-0.5 ${s.color}`}>{s.value}</p>
                     </div>
                   </div>
                 ))}
