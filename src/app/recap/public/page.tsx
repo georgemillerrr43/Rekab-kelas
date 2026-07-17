@@ -6,11 +6,25 @@ import { exportAttendanceToPDF } from '@/utils/pdfExport';
 interface RekapItem { nis: string; nama: string; hadir: number; izin: number; sakit: number; alpa: number; persentase: number; totalHari: number; }
 interface KelasItem { id: string; nama: string; waliKelas: string; }
 
+const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+function getMonthOptions(): string[] {
+  const now = new Date();
+  const opts: string[] = [];
+  for (let i = 0; i <= 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    opts.push(`${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`);
+  }
+  return opts;
+}
+const MONTH_OPTIONS = getMonthOptions();
+function getDefaultMonth() { return MONTH_OPTIONS[0]; }
+
 export default function PublicRekapPage() {
   const [list, setList] = useState<RekapItem[]>([]);
   const [kelasList, setKelasList] = useState<KelasItem[]>([]);
   const [kelasId, setKelasId] = useState('');
-  const [bulan, setBulan] = useState('Juni 2026');
+  const [bulan, setBulan] = useState(getDefaultMonth());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -68,11 +82,7 @@ export default function PublicRekapPage() {
           </div>
           <div>
             <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Bulan</label>
-            <select value={bulan} onChange={(e) => setBulan(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm">
-              <option value="Juni 2026">Juni 2026</option>
-              <option value="Mei 2026">Mei 2026</option>
-              <option value="April 2026">April 2026</option>
-            </select>
+            <select value={bulan} onChange={(e) => setBulan(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm">{MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}</select>
           </div>
         </div>
       </div>

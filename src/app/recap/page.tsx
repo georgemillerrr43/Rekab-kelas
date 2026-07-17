@@ -8,11 +8,24 @@ interface DailyStudent { siswaId: string; nis: string; nama: string; status: str
 interface DailySummary { hadir: number; izin: number; sakit: number; alpa: number; belum: number; total: number; }
 type TabType = 'bulanan' | 'harian';
 
-const MONTH_MAP: Record<string, { month: number; year: number }> = {
-  'Juni 2026': { month: 5, year: 2026 },
-  'Mei 2026': { month: 4, year: 2026 },
-  'April 2026': { month: 3, year: 2026 },
-};
+const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+function getMonthOptions(): string[] {
+  const now = new Date();
+  const opts: string[] = [];
+  for (let i = 0; i <= 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    opts.push(`${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`);
+  }
+  return opts;
+}
+
+const MONTH_OPTIONS = getMonthOptions();
+
+function monthToInfo(m: string): { month: number; year: number } {
+  const p = m.split(' ');
+  return { month: MONTHS_ID.indexOf(p[0]), year: parseInt(p[1]) || new Date().getFullYear() };
+}
 
 function exportDailyPDF(students: DailyStudent[], kelas: string, tanggal: string) {
   if (!kelas) return;
@@ -64,13 +77,13 @@ function RekapPageInner() {
   const [tab, setTab] = useState<TabType>((sp.get('tab') as TabType) || 'bulanan');
   const [session, setSession] = useState<{ isLoggedIn: boolean; role: 'ADMIN' | 'GURU' | 'SISWA' | null }>({ isLoggedIn: false, role: null });
   const [kelas, setKelas] = useState('');
-  const [bulan, setBulan] = useState('Juni 2026');
+  const [bulan, setBulan] = useState(MONTH_OPTIONS[0]);
   const [kelasList, setKelasList] = useState<{ id: string; nama: string; waliKelas: string }[]>([]);
   const [waliKelas, setWaliKelas] = useState('');
   const [rekapList, setRekapList] = useState<StudentRecap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hKelas, setHKelas] = useState('');
-  const [hBulan, setHBulan] = useState('Juni 2026');
+  const [hBulan, setHBulan] = useState(MONTH_OPTIONS[0]);
   const [hTanggal, setHTanggal] = useState<string | null>(null);
   const [hStudents, setHStudents] = useState<DailyStudent[]>([]);
   const [hSummary, setHSummary] = useState<DailySummary>({ hadir: 0, izin: 0, sakit: 0, alpa: 0, belum: 0, total: 0 });
@@ -136,7 +149,7 @@ function RekapPageInner() {
   const fmtDate = hTanggal ? new Date(hTanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
   const getDays = (b: string) => {
-    const info = MONTH_MAP[b] || { month: 5, year: 2026 };
+    const info = monthToInfo(b);
     const d = new Date(info.year, info.month, 1); const days = [];
     while (d.getMonth() === info.month) {
       const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
@@ -195,7 +208,7 @@ function RekapPageInner() {
               <h3 className="text-sm font-bold text-[var(--text-primary)] mb-3">Filter</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Kelas</label><select value={kelas} onChange={(e) => { const k = e.target.value; setKelas(k); const found = kelasList.find(x => x.id === k); if (found) setWaliKelas(found.waliKelas); }} className="glass-select w-full p-2 rounded-lg text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
-                <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Bulan</label><select value={bulan} onChange={(e) => setBulan(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm"><option value="Juni 2026">Juni 2026</option><option value="Mei 2026">Mei 2026</option><option value="April 2026">April 2026</option></select></div>
+                <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Bulan</label><select value={bulan} onChange={(e) => setBulan(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm">{MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
               </div>
             </div>
           )}
@@ -251,7 +264,7 @@ function RekapPageInner() {
             <div className="glass-card p-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Kelas</label><select value={hKelas} onChange={(e) => setHKelas(e.target.value)} className="glass-select w-full p-2.5 rounded-lg text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
-                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Bulan</label><select value={hBulan} onChange={(e) => { setHBulan(e.target.value); setHTanggal(null); }} className="glass-select w-full p-2.5 rounded-lg text-sm"><option value="Juni 2026">Juni 2026</option><option value="Mei 2026">Mei 2026</option><option value="April 2026">April 2026</option></select></div>
+                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Bulan</label><select value={hBulan} onChange={(e) => { setHBulan(e.target.value); setHTanggal(null); }} className="glass-select w-full p-2.5 rounded-lg text-sm">{MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
               </div>
             </div>
           )}
