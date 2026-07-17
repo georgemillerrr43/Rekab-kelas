@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         where: { siswaId_tanggal: { siswaId, tanggal: targetDate } },
       });
 
-      if (status === 'HADIR' || status === 'ALPA') {
+      if (status === 'HADIR' || status === 'ALPA' || status === 'PKL') {
         if (existingKhd?.izinId) {
           await prisma.kehadiran.update({
             where: { id: existingKhd.id },

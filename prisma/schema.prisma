@@ -12,6 +12,7 @@ enum AttendanceStatus {
   IZIN
   SAKIT
   ALPA
+  PKL
 }
 
 enum ApprovalStatus {

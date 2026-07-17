@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
       const izin = studentKhd.filter((k) => k.status === 'IZIN').length;
       const sakit = studentKhd.filter((k) => k.status === 'SAKIT').length;
       const alpa = studentKhd.filter((k) => k.status === 'ALPA').length;
+      const pkl = studentKhd.filter((k) => k.status === 'PKL').length;
       const totalHari = studentKhd.length;
       const persentase = totalHari > 0 ? Number(((hadir / totalHari) * 100).toFixed(1)) : 0;
 
@@ -69,6 +70,7 @@ export async function GET(request: NextRequest) {
         izin,
         sakit,
         alpa,
+        pkl,
         totalHari,
         persentase,
       };

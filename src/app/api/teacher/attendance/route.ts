@@ -89,6 +89,12 @@ export async function POST(req: NextRequest) {
         });
 
         await sendWANotif(item, tanggal, siswaMap);
+      } else if (item.status === 'PKL') {
+        await prisma.kehadiran.upsert({
+          where: { siswaId_tanggal: { siswaId: item.siswaId, tanggal: new Date(tanggal) } },
+          update: { status: item.status },
+          create: { siswaId: item.siswaId, tanggal: new Date(tanggal), status: item.status },
+        });
       } else {
         await prisma.kehadiran.upsert({
           where: { siswaId_tanggal: { siswaId: item.siswaId, tanggal: new Date(tanggal) } },

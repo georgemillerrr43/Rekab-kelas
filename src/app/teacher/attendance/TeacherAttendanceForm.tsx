@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-type Status = 'HADIR' | 'IZIN' | 'SAKIT' | 'ALPA';
+type Status = 'HADIR' | 'IZIN' | 'SAKIT' | 'ALPA' | 'PKL';
 interface Student { id: string; nis: string; nama: string; status: Status; alasan?: string; buktiUrl?: string; buktiPreview?: string; uploadError?: string; }
 
 export default function GuruAttendanceForm() {
@@ -30,7 +30,7 @@ export default function GuruAttendanceForm() {
   }, [tanggal]);
 
   const handleStatus = (id: string, status: Status) => setStudents(p => p.map(s =>
-    s.id === id ? { ...s, status, ...(status === 'HADIR' || status === 'ALPA' ? { alasan: '', uploadError: '' } : {}) } : s
+    s.id === id ? { ...s, status, ...(status === 'HADIR' || status === 'ALPA' || status === 'PKL' ? { alasan: '', uploadError: '' } : {}) } : s
   ));
   const handleAlasan = (id: string, v: string) => setStudents(p => p.map(s => s.id === id ? { ...s, alasan: v } : s));
 
@@ -86,6 +86,7 @@ export default function GuruAttendanceForm() {
       { l: 'Hadir', v: 'HADIR' as Status, a: 'bg-[var(--bullish)] text-white', b: 'text-[var(--bullish)] border-[rgba(34,197,94,0.2)]' },
       { l: 'Izin', v: 'IZIN' as Status, a: 'bg-[var(--warning)] text-white', b: 'text-[var(--warning)] border-[rgba(245,158,11,0.2)]' },
       { l: 'Sakit', v: 'SAKIT' as Status, a: 'bg-[var(--info)] text-white', b: 'text-[var(--info)] border-[rgba(6,182,212,0.2)]' },
+      { l: 'PKL', v: 'PKL' as Status, a: 'bg-purple-600 text-white', b: 'text-purple-500 border-purple-300/30' },
       { l: 'Alpa', v: 'ALPA' as Status, a: 'bg-[var(--bearish)] text-white', b: 'text-[var(--bearish)] border-[rgba(239,68,68,0.2)]' },
     ];
     if (layout === 'row') {

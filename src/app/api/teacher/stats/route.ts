@@ -23,11 +23,12 @@ export async function GET(req: NextRequest) {
       where: { siswaId: { in: siswaIds }, tanggal: { gte: startMonth, lte: endMonth } },
     });
 
-    const stats = { hadir: 0, izin: 0, sakit: 0, alpa: 0 };
+    const stats = { hadir: 0, izin: 0, sakit: 0, alpa: 0, pkl: 0 };
     for (const k of kehadiran) {
       if (k.status === 'HADIR') stats.hadir++;
       else if (k.status === 'IZIN') stats.izin++;
       else if (k.status === 'SAKIT') stats.sakit++;
+      else if (k.status === 'PKL') stats.pkl++;
       else if (k.status === 'ALPA') stats.alpa++;
     }
 

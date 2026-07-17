@@ -52,12 +52,13 @@ export async function GET(request: NextRequest) {
     const izin = result.filter((r) => r.status === 'IZIN').length;
     const sakit = result.filter((r) => r.status === 'SAKIT').length;
     const alpa = result.filter((r) => r.status === 'ALPA').length;
+    const pkl = result.filter((r) => r.status === 'PKL').length;
     const belum = result.filter((r) => r.status === 'BELUM').length;
 
     return NextResponse.json({
       tanggal,
       kelas,
-      summary: { hadir, izin, sakit, alpa, belum, total: students.length },
+      summary: { hadir, izin, sakit, alpa, pkl, belum, total: students.length },
       students: result,
     });
   } catch (error) {

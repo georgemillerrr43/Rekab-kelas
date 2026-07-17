@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { exportAttendanceToPDF } from '@/utils/pdfExport';
 
-interface RekapItem { nis: string; nama: string; hadir: number; izin: number; sakit: number; alpa: number; persentase: number; totalHari: number; }
+interface RekapItem { nis: string; nama: string; hadir: number; izin: number; sakit: number; alpa: number; pkl: number; persentase: number; totalHari: number; }
 interface KelasItem { id: string; nama: string; waliKelas: string; }
 
 const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -100,16 +100,19 @@ export default function PublicRekapPage() {
       )}
 
       <div className="glass-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center">
-          <h3 className="font-bold text-[var(--text-primary)]">Kehadiran {selectedKelas?.nama?.replace(/-/g, ' ') || '-'}</h3>
-          <span className="badge badge-gray">{bulan}</span>
+        <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-[var(--text-primary)]">Kehadiran {selectedKelas?.nama?.replace(/-/g, ' ') || '-'}</h3>
+            <span className="badge badge-gray">{bulan}</span>
+          </div>
+          {selectedKelas?.waliKelas && <p className="text-xs text-[var(--text-muted)] mt-1">Wali Kelas: {selectedKelas.waliKelas}</p>}
         </div>
         <div className="overflow-x-auto">
           <table className="table-premium">
-            <thead><tr><th className="text-center w-16">No</th><th>NIS</th><th>Nama</th><th className="text-center">Hadir</th><th className="text-center">Izin</th><th className="text-center">Sakit</th><th className="text-center">Alpa</th><th className="text-center">%</th></tr></thead>
+            <thead><tr><th className="text-center w-16">No</th><th>NIS</th><th>Nama</th><th className="text-center">Hadir</th><th className="text-center">Izin</th><th className="text-center">Sakit</th><th className="text-center">PKL</th><th className="text-center">Alpa</th><th className="text-center">%</th></tr></thead>
             <tbody className="divide-y divide-[var(--border-subtle)]">
               {list.length === 0 && !error ? (
-                <tr><td colSpan={8} className="p-10 text-center text-[var(--text-muted)]">
+                <tr><td colSpan={9} className="p-10 text-center text-[var(--text-muted)]">
                   {isLoading || !kelasId ? 'Memuat...' : 'Tidak ada data absensi untuk periode ini.'}
                 </td></tr>
               ) : list.map((item, i) => (
@@ -120,6 +123,7 @@ export default function PublicRekapPage() {
                   <td className="text-center text-[var(--text-secondary)]">{item.hadir}</td>
                   <td className="text-center text-[var(--warning)]">{item.izin}</td>
                   <td className="text-center text-[var(--info)]">{item.sakit}</td>
+                  <td className="text-center font-semibold text-purple-500">{item.pkl || 0}</td>
                   <td className="text-center text-[var(--bearish)]">{item.alpa}</td>
                   <td className="text-center"><span className={`text-sm font-bold ${item.persentase >= 90 ? 'text-[var(--bullish)]' : item.persentase >= 75 ? 'text-[var(--warning)]' : 'text-[var(--bearish)]'}`}>{item.persentase}%</span></td>
                 </tr>

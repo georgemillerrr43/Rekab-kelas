@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { exportAttendanceToPDF, StudentRecap } from '@/utils/pdfExport';
 
 interface DailyStudent { siswaId: string; nis: string; nama: string; status: string; alasan: string; buktiUrl: string; }
-interface DailySummary { hadir: number; izin: number; sakit: number; alpa: number; belum: number; total: number; }
+interface DailySummary { hadir: number; izin: number; sakit: number; alpa: number; pkl: number; belum: number; total: number; }
 type TabType = 'bulanan' | 'harian';
 
 const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -49,13 +49,14 @@ function exportDailyPDF(students: DailyStudent[], kelas: string, tanggal: string
       const h = students.filter(s => s.status === 'HADIR').length;
       const iz = students.filter(s => s.status === 'IZIN').length;
       const sk = students.filter(s => s.status === 'SAKIT').length;
+      const pkl = students.filter(s => s.status === 'PKL').length;
       const al = students.filter(s => s.status === 'ALPA').length;
-      doc.text(`Hadir: ${h}  |  Izin: ${iz}  |  Sakit: ${sk}  |  Alpa: ${al}  |  Total: ${students.length}`, 14, 48);
+      doc.text(`Hadir: ${h}  |  Izin: ${iz}  |  Sakit: ${sk}  |  PKL: ${pkl}  |  Alpa: ${al}  |  Total: ${students.length}`, 14, 48);
 
       const hd = [[{ content: 'No', styles: { halign: 'center' } }, 'NIS', 'Nama Siswa', { content: 'Status', styles: { halign: 'center' } }, 'Keterangan']];
       const rows = students.map((s, i) => [
         { content: (i + 1).toString(), styles: { halign: 'center' } }, s.nis, s.nama,
-        { content: s.status === 'BELUM' ? '-' : s.status, styles: { halign: 'center', fontStyle: 'bold', textColor: s.status === 'HADIR' ? [16, 185, 129] : s.status === 'IZIN' ? [245, 158, 11] : s.status === 'SAKIT' ? [14, 165, 233] : s.status === 'ALPA' ? [225, 29, 72] : [100, 116, 139] } },
+        { content: s.status === 'BELUM' ? '-' : s.status, styles: { halign: 'center', fontStyle: 'bold', textColor: s.status === 'HADIR' ? [16, 185, 129] : s.status === 'IZIN' ? [245, 158, 11] : s.status === 'SAKIT' ? [14, 165, 233] : s.status === 'PKL' ? [168, 85, 247] : s.status === 'ALPA' ? [225, 29, 72] : [100, 116, 139] } },
         s.alasan || '-',
       ]);
 
@@ -86,7 +87,7 @@ function RekapPageInner() {
   const [hBulan, setHBulan] = useState(MONTH_OPTIONS[0]);
   const [hTanggal, setHTanggal] = useState<string | null>(null);
   const [hStudents, setHStudents] = useState<DailyStudent[]>([]);
-  const [hSummary, setHSummary] = useState<DailySummary>({ hadir: 0, izin: 0, sakit: 0, alpa: 0, belum: 0, total: 0 });
+  const [hSummary, setHSummary] = useState<DailySummary>({ hadir: 0, izin: 0, sakit: 0, alpa: 0, pkl: 0, belum: 0, total: 0 });
   const [hLoading, setHLoading] = useState(false);
   const [hFetched, setHFetched] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -127,7 +128,7 @@ function RekapPageInner() {
       try {
         const res = await fetch(`/api/recap/daily?tanggal=${hTanggal}&kelas=${hKelas}`);
         const d = await res.json();
-        setHStudents(d.students || []); setHSummary(d.summary || { hadir: 0, izin: 0, sakit: 0, alpa: 0, belum: 0, total: 0 }); setHFetched(true);
+        setHStudents(d.students || []); setHSummary(d.summary || { hadir: 0, izin: 0, sakit: 0, alpa: 0, pkl: 0, belum: 0, total: 0 }); setHFetched(true);
       } catch { /* empty */ } finally { setHLoading(false); }
     })();
   }, [hKelas, hTanggal, tab]);
@@ -145,7 +146,7 @@ function RekapPageInner() {
   const totalAlpa = rekapList.reduce((a, c) => a + c.alpa, 0);
   const totalIzinSakit = rekapList.reduce((a, c) => a + c.izin + c.sakit, 0);
 
-  const sc = (s: string) => { switch (s) { case 'HADIR': return 'badge-green'; case 'IZIN': return 'badge-amber'; case 'SAKIT': return 'badge-sky'; case 'ALPA': return 'badge-red'; default: return 'badge-gray'; } };
+  const sc = (s: string) => { switch (s) { case 'HADIR': return 'badge-green'; case 'IZIN': return 'badge-amber'; case 'SAKIT': return 'badge-sky'; case 'PKL': return 'badge-purple'; case 'ALPA': return 'badge-red'; default: return 'badge-gray'; } };
   const fmtDate = hTanggal ? new Date(hTanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
   const getDays = (b: string) => {
@@ -162,7 +163,7 @@ function RekapPageInner() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="page-header flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div><span className="badge badge-gray mb-2">Rekapitulasi</span><h1>Rekapitulasi Kehadiran Kelas</h1><p>Akumulasi otomatis dan download laporan siap cetak.</p></div>
+        <div><span className="badge badge-gray mb-2">Rekapitulasi</span><h1>Rekapitulasi Kehadiran Kelas</h1><p>Akumulasi otomatis dan download laporan siap cetak. {waliKelas && <span className="text-[var(--text-accent)]">Wali Kelas: {waliKelas}</span>}</p></div>
         <div className="tab-switcher">
           <button onClick={() => setTab('bulanan')} className={tab === 'bulanan' ? 'active' : ''}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
@@ -220,10 +221,10 @@ function RekapPageInner() {
             </div>
             <div className="overflow-x-auto">
               <table className="table-premium">
-                <thead><tr><th className="text-center w-16">No</th><th>NIS</th><th>Nama</th><th className="text-center">Hadir</th><th className="text-center">Izin</th><th className="text-center">Sakit</th><th className="text-center">Alpa</th><th className="text-center w-32">% Hadir</th></tr></thead>
+                <thead><tr><th className="text-center w-16">No</th><th>NIS</th><th>Nama</th><th className="text-center">Hadir</th><th className="text-center">Izin</th><th className="text-center">Sakit</th><th className="text-center">PKL</th><th className="text-center">Alpa</th><th className="text-center w-32">% Hadir</th></tr></thead>
                 <tbody className="divide-y divide-[var(--border-subtle)]">
-                  {isLoading ? <tr><td colSpan={8} className="p-10 text-center text-[var(--text-muted)] text-sm">Memuat...</td></tr>
-                    : rekapList.length === 0 ? <tr><td colSpan={8} className="p-10 text-center text-[var(--text-muted)] text-sm">Belum ada data absensi bulan ini.</td></tr>
+                  {isLoading ? <tr><td colSpan={9} className="p-10 text-center text-[var(--text-muted)] text-sm">Memuat...</td></tr>
+                    : rekapList.length === 0 ? <tr><td colSpan={9} className="p-10 text-center text-[var(--text-muted)] text-sm">Belum ada data absensi bulan ini.</td></tr>
                     : rekapList.map((item, i) => (
                       <tr key={item.nis} className="hover:bg-[var(--bg-glass)] transition-colors">
                         <td className="text-center font-mono text-[var(--text-muted)]">{i + 1}</td>
@@ -232,6 +233,7 @@ function RekapPageInner() {
                         <td className="text-center font-semibold text-[var(--text-secondary)]">{item.hadir}</td>
                         <td className="text-center font-semibold text-[var(--warning)]">{item.izin}</td>
                         <td className="text-center font-semibold text-[var(--info)]">{item.sakit}</td>
+                        <td className="text-center font-semibold text-purple-500">{(item as any).pkl || 0}</td>
                         <td className="text-center font-semibold text-[var(--bearish)]">{item.alpa}</td>
                         <td className="text-center">
                           <div className="flex flex-col items-center">
@@ -312,18 +314,19 @@ function RekapPageInner() {
                 <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Tidak ada data absensi untuk tanggal ini.</div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                     {[
                       { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]' },
                       { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]' },
                       { label: 'Sakit', value: hSummary.sakit, color: 'text-[var(--info)]' },
+                      { label: 'PKL', value: hSummary.pkl || 0, color: 'text-purple-500' },
                       { label: 'Alpa', value: hSummary.alpa, color: 'text-[var(--bearish)]' },
                       { label: 'Total', value: hSummary.total, color: 'text-[var(--text-primary)]' },
                     ].map((s) => (<div key={s.label} className="stat-card p-4"><p className="label">{s.label}</p><p className={`value text-lg ${s.color}`}>{s.value}</p></div>))}
                   </div>
 
                   <div className="glass-card overflow-hidden">
-                    <div className="px-6 py-4 border-b border-[var(--border-subtle)]"><h3 className="font-bold text-[var(--text-primary)] text-base">Kehadiran Per Hari</h3><p className="text-xs text-[var(--text-muted)]">{fmtDate} — {selectedKelasNama || hKelas}</p></div>
+                    <div className="px-6 py-4 border-b border-[var(--border-subtle)]"><h3 className="font-bold text-[var(--text-primary)] text-base">Kehadiran Per Hari</h3><p className="text-xs text-[var(--text-muted)]">{fmtDate} — {selectedKelasNama || hKelas}{waliKelas ? ` — Wali Kelas: ${waliKelas}` : ''}</p></div>
                     <div className="overflow-x-auto">
                       <table className="table-premium">
                         <thead><tr><th className="text-center w-16">No</th><th>NIS</th><th>Nama</th><th className="text-center">Status</th><th>Keterangan</th></tr></thead>

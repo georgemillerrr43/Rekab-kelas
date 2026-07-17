@@ -8,6 +8,7 @@ export interface StudentRecap {
   izin: number;
   sakit: number;
   alpa: number;
+  pkl: number;
   totalHari: number;
   persentase: number;
 }
@@ -91,6 +92,7 @@ export function exportAttendanceToPDF(
   const izinCount = students.reduce((a, c) => a + c.izin, 0);
   const sakitCount = students.reduce((a, c) => a + c.sakit, 0);
   const alpaCount = students.reduce((a, c) => a + c.alpa, 0);
+  const pklCount = students.reduce((a, c) => a + (c.pkl || 0), 0);
   const avg = students.length > 0 ? students.reduce((a, c) => a + c.persentase, 0) / students.length : 0;
 
   doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
@@ -104,6 +106,7 @@ export function exportAttendanceToPDF(
     `Hadir: ${hadirCount}`,
     `Izin: ${izinCount}`,
     `Sakit: ${sakitCount}`,
+    `PKL: ${pklCount}`,
     `Alpa: ${alpaCount}`,
     `Rata-rata: ${avg.toFixed(1)}%`,
   ];
@@ -121,6 +124,7 @@ export function exportAttendanceToPDF(
       { content: 'Hadir', styles: { halign: 'center' } },
       { content: 'Izin', styles: { halign: 'center' } },
       { content: 'Sakit', styles: { halign: 'center' } },
+      { content: 'PKL', styles: { halign: 'center' } },
       { content: 'Alpa', styles: { halign: 'center' } },
       { content: '% Hadir', styles: { halign: 'center' } },
     ],
@@ -133,6 +137,7 @@ export function exportAttendanceToPDF(
     { content: s.hadir.toString(), styles: { halign: 'center' } },
     { content: s.izin.toString(), styles: { halign: 'center' } },
     { content: s.sakit.toString(), styles: { halign: 'center' } },
+    { content: (s.pkl || 0).toString(), styles: { halign: 'center' } },
     { content: s.alpa.toString(), styles: { halign: 'center' } },
     {
       content: `${s.persentase.toFixed(1)}%`,
@@ -161,13 +166,14 @@ export function exportAttendanceToPDF(
     },
     columnStyles: {
       0: { cellWidth: 10, halign: 'center' },
-      1: { cellWidth: 24 },
-      2: { cellWidth: 64 },
-      3: { cellWidth: 16, halign: 'center' },
-      4: { cellWidth: 16, halign: 'center' },
-      5: { cellWidth: 16, halign: 'center' },
-      6: { cellWidth: 16, halign: 'center' },
-      7: { cellWidth: 20, halign: 'center' },
+      1: { cellWidth: 22 },
+      2: { cellWidth: 58 },
+      3: { cellWidth: 14, halign: 'center' },
+      4: { cellWidth: 14, halign: 'center' },
+      5: { cellWidth: 14, halign: 'center' },
+      6: { cellWidth: 14, halign: 'center' },
+      7: { cellWidth: 14, halign: 'center' },
+      8: { cellWidth: 18, halign: 'center' },
     },
     styles: {
       font: 'Helvetica',

@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     const totalHadir = monthlyKehadiran.filter((k) => k.status === 'HADIR').length;
     const totalIzin = monthlyKehadiran.filter((k) => k.status === 'IZIN').length;
     const totalSakit = monthlyKehadiran.filter((k) => k.status === 'SAKIT').length;
+    const totalPkl = monthlyKehadiran.filter((k) => k.status === 'PKL').length;
     const totalAlpa = monthlyKehadiran.filter((k) => k.status === 'ALPA').length;
 
     const avgAttendance = totalKhd > 0 ? ((totalHadir / totalKhd) * 100).toFixed(1) : '100.0';
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
       { label: 'Hadir', value: totalKhd > 0 ? Number(((totalHadir / totalKhd) * 100).toFixed(1)) : 0, color: 'bg-emerald-500' },
       { label: 'Izin', value: totalKhd > 0 ? Number(((totalIzin / totalKhd) * 100).toFixed(1)) : 0, color: 'bg-amber-400' },
       { label: 'Sakit', value: totalKhd > 0 ? Number(((totalSakit / totalKhd) * 100).toFixed(1)) : 0, color: 'bg-sky-400' },
+      { label: 'PKL', value: totalKhd > 0 ? Number(((totalPkl / totalKhd) * 100).toFixed(1)) : 0, color: 'bg-purple-500' },
       { label: 'Alpa', value: totalKhd > 0 ? Number(((totalAlpa / totalKhd) * 100).toFixed(1)) : 0, color: 'bg-rose-500' },
     ];
 

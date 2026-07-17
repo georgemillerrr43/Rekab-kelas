@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 
 interface Siswa { id: string; nis: string; nama: string; whatsappOrangTua: string; }
 interface Kelas { id: string; nama: string; waliKelas: string; }
-type StatusKehadiran = 'HADIR' | 'IZIN' | 'SAKIT' | 'ALPA';
+type StatusKehadiran = 'HADIR' | 'IZIN' | 'SAKIT' | 'ALPA' | 'PKL';
 interface StudentState {
   siswaId: string; status: StatusKehadiran; alasan?: string;
   buktiUrl?: string; buktiPreview?: string; uploadError?: string;
@@ -52,7 +52,7 @@ function AttendanceFormInner() {
     })();
   }, [kelas, tanggal]);
 
-  const handleStatus = (id: string, status: StatusKehadiran) => setAttendance((prev) => ({ ...prev, [id]: { ...prev[id], status, ...(status === 'HADIR' || status === 'ALPA' ? { alasan: '', uploadError: '' } : {}) } }));
+  const handleStatus = (id: string, status: StatusKehadiran) => setAttendance((prev) => ({ ...prev, [id]: { ...prev[id], status, ...(status === 'HADIR' || status === 'ALPA' || status === 'PKL' ? { alasan: '', uploadError: '' } : {}) } }));
   const handleAlasan = (id: string, v: string) => setAttendance((prev) => ({ ...prev, [id]: { ...prev[id], alasan: v } }));
 
   const handleUpload = (siswaId: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,6 +114,7 @@ function AttendanceFormInner() {
       { label: 'Hadir', val: 'HADIR' as const, a: 'bg-[var(--bullish)] text-white', b: 'text-[var(--bullish)] border-[rgba(34,197,94,0.2)]' },
       { label: 'Izin', val: 'IZIN' as const, a: 'bg-[var(--warning)] text-white', b: 'text-[var(--warning)] border-[rgba(245,158,11,0.2)]' },
       { label: 'Sakit', val: 'SAKIT' as const, a: 'bg-[var(--info)] text-white', b: 'text-[var(--info)] border-[rgba(6,182,212,0.2)]' },
+      { label: 'PKL', val: 'PKL' as const, a: 'bg-purple-600 text-white', b: 'text-purple-500 border-purple-300/30' },
       { label: 'Alpa', val: 'ALPA' as const, a: 'bg-[var(--bearish)] text-white', b: 'text-[var(--bearish)] border-[rgba(239,68,68,0.2)]' },
     ];
     return btns.map((b) => (<button key={b.val} type="button" onClick={() => handleStatus(id, b.val)} className={`btn-pill-sm ${state.status === b.val ? b.a : `${b.b} hover:bg-[var(--bg-glass-hover)]`}`}>{b.label}</button>));
@@ -124,6 +125,7 @@ function AttendanceFormInner() {
       { label: 'Hadir', val: 'HADIR' as const, a: 'bg-[var(--bullish)] text-white', b: 'text-[var(--bullish)] border-[rgba(34,197,94,0.2)] bg-[rgba(34,197,94,0.05)]' },
       { label: 'Izin', val: 'IZIN' as const, a: 'bg-[var(--warning)] text-white', b: 'text-[var(--warning)] border-[rgba(245,158,11,0.2)] bg-[rgba(245,158,11,0.05)]' },
       { label: 'Sakit', val: 'SAKIT' as const, a: 'bg-[var(--info)] text-white', b: 'text-[var(--info)] border-[rgba(6,182,212,0.2)] bg-[rgba(6,182,212,0.05)]' },
+      { label: 'PKL', val: 'PKL' as const, a: 'bg-purple-600 text-white', b: 'text-purple-500 border-purple-300/30 bg-purple-500/5' },
       { label: 'Alpa', val: 'ALPA' as const, a: 'bg-[var(--bearish)] text-white', b: 'text-[var(--bearish)] border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.05)]' },
     ];
     return btns.map((b) => (<button key={b.val} type="button" onClick={() => handleStatus(id, b.val)} className={`py-2.5 text-center text-xs font-semibold rounded-[var(--radius-pill)] border transition-all ${state.status === b.val ? b.a : b.b}`}>{b.label}</button>));
