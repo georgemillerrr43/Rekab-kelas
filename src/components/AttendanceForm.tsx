@@ -168,15 +168,15 @@ function AttendanceFormInner() {
   }
 
   return (
-    <div className="glass-card max-w-5xl mx-auto p-4 md:p-6">
-      <div className="border-b border-[var(--border-subtle)] pb-5 mb-6">
-        <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Form Absensi Harian</h2>
-        <p className="text-[var(--text-muted)] text-sm">Catat kehadiran siswa secara akurat setelah kelas selesai.</p>
+    <div className="glass-card max-w-5xl mx-auto p-3 md:p-6 w-full max-w-full overflow-hidden">
+      <div className="border-b border-[var(--border-subtle)] pb-4 md:pb-5 mb-4 md:mb-6">
+        <h2 className="text-lg md:text-xl font-bold text-[var(--text-primary)] tracking-tight">Form Absensi Harian</h2>
+        <p className="text-[var(--text-muted)] text-xs md:text-sm">Catat kehadiran siswa secara akurat setelah kelas selesai.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[var(--bg-glass)] p-4 rounded-[var(--radius-card)] mb-6">
-        <div><label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Tanggal</label><input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} className="glass-input w-full p-2.5 text-sm" /></div>
-        <div><label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Kelas</label><select value={kelas} onChange={(e) => setKelas(e.target.value)} className="glass-select w-full p-2.5 text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama} ({k.waliKelas})</option>))}</select></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 bg-[var(--bg-glass)] p-3 md:p-4 rounded-[var(--radius-card)] mb-4 md:mb-6">
+        <div><label className="block text-[10px] md:text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Tanggal</label><input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} className="glass-input w-full p-2 md:p-2.5 text-xs md:text-sm" /></div>
+        <div><label className="block text-[10px] md:text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Kelas</label><select value={kelas} onChange={(e) => setKelas(e.target.value)} className="glass-select w-full p-2 md:p-2.5 text-xs md:text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama} ({k.waliKelas})</option>))}</select></div>
       </div>
 
       {isSuccess ? (
@@ -236,7 +236,7 @@ function AttendanceFormInner() {
           )}
 
           <div className="flex justify-end pt-4 border-t border-[var(--border-subtle)]">
-            <button type="submit" disabled={isSubmitting || isLoading} className="btn-primary px-8 py-2.5 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">{isSubmitting ? 'Menyimpan...' : 'Simpan dan Kirim'}</button>
+            <button type="submit" disabled={isSubmitting || isLoading} className="btn-primary w-full md:w-auto px-5 md:px-8 py-3 md:py-2.5 text-xs md:text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">{isSubmitting ? 'Menyimpan...' : 'Simpan dan Kirim'}</button>
           </div>
         </form>
       )}

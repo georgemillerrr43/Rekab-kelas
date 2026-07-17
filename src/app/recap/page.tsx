@@ -160,16 +160,16 @@ function RekapPageInner() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="page-header flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div><span className="badge badge-gray mb-2">Rekapitulasi</span><h1>Rekapitulasi Kehadiran Kelas</h1><p>Akumulasi otomatis dan download laporan siap cetak. {waliKelas && <span className="text-[var(--text-accent)]">Wali Kelas: {waliKelas}</span>}</p></div>
-        <div className="tab-switcher">
+    <div className="space-y-4 md:space-y-6 animate-fade-in px-2 md:px-0">
+      <div className="page-header flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 p-4 md:p-6">
+        <div className="min-w-0"><span className="badge badge-gray mb-1.5 md:mb-2">Rekapitulasi</span><h1 className="text-lg md:text-2xl">Rekapitulasi Kehadiran Kelas</h1><p className="text-xs md:text-sm">Akumulasi otomatis dan download laporan siap cetak. {waliKelas && <span className="text-[var(--text-accent)]">Wali Kelas: {waliKelas}</span>}</p></div>
+        <div className="tab-switcher w-full md:w-auto justify-center md:justify-start overflow-x-auto flex-nowrap shrink-0">
           <button onClick={() => setTab('bulanan')} className={tab === 'bulanan' ? 'active' : ''}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
             Rekap Bulanan
           </button>
           <button onClick={() => setTab('harian')} className={tab === 'harian' ? 'active' : ''}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
             Rekap Harian
           </button>
         </div>
@@ -196,27 +196,27 @@ function RekapPageInner() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="stat-card"><p className="label">Total Siswa</p><p className="value text-[var(--text-primary)]">{total} Siswa</p><span className="text-[11px] text-[var(--text-muted)]">Terdaftar Aktif</span></div>
-            <div className="stat-card"><p className="label">Rata-rata Kehadiran</p><p className="value text-[var(--bullish)]">{avg.toFixed(1)}%</p><div className="progress-bar mt-2"><div className="progress-bar-fill bg-[var(--bullish)]" style={{ width: `${avg}%` }} /></div></div>
-            <div className="stat-card"><p className="label">Akumulasi Alpa</p><p className="value text-[var(--bearish)]">{totalAlpa} Kali</p><span className="text-[11px] text-[var(--bearish)] font-medium">Perlu Atensi</span></div>
-            <div className="stat-card"><p className="label">Total Izin / Sakit</p><p className="value text-[var(--warning)]">{totalIzinSakit} Kali</p><span className="text-[11px] text-[var(--text-muted)]">Disertai Bukti</span></div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+            <div className="stat-card p-3 md:p-4"><p className="label text-[10px] md:text-xs">Total Siswa</p><p className="value text-base md:text-lg text-[var(--text-primary)]">{total} Siswa</p><span className="text-[10px] md:text-[11px] text-[var(--text-muted)]">Terdaftar Aktif</span></div>
+            <div className="stat-card p-3 md:p-4"><p className="label text-[10px] md:text-xs">Rata-rata Kehadiran</p><p className="value text-base md:text-lg text-[var(--bullish)]">{avg.toFixed(1)}%</p><div className="progress-bar mt-1.5 md:mt-2"><div className="progress-bar-fill bg-[var(--bullish)]" style={{ width: `${avg}%` }} /></div></div>
+            <div className="stat-card p-3 md:p-4"><p className="label text-[10px] md:text-xs">Akumulasi Alpa</p><p className="value text-base md:text-lg text-[var(--bearish)]">{totalAlpa} Kali</p><span className="text-[10px] md:text-[11px] text-[var(--bearish)] font-medium">Perlu Atensi</span></div>
+            <div className="stat-card p-3 md:p-4"><p className="label text-[10px] md:text-xs">Total Izin / Sakit</p><p className="value text-base md:text-lg text-[var(--warning)]">{totalIzinSakit} Kali</p><span className="text-[10px] md:text-[11px] text-[var(--text-muted)]">Disertai Bukti</span></div>
           </div>
 
           {isAdmin && (
-            <div className="glass-card p-5">
-              <h3 className="text-sm font-bold text-[var(--text-primary)] mb-3">Filter</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Kelas</label><select value={kelas} onChange={(e) => { const k = e.target.value; setKelas(k); const found = kelasList.find(x => x.id === k); if (found) setWaliKelas(found.waliKelas); }} className="glass-select w-full p-2 rounded-lg text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
-                <div><label className="block text-xs font-medium text-[var(--text-muted)] mb-1">Bulan</label><select value={bulan} onChange={(e) => setBulan(e.target.value)} className="glass-select w-full p-2 rounded-lg text-sm">{MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
+            <div className="glass-card p-4 md:p-5">
+              <h3 className="text-xs md:text-sm font-bold text-[var(--text-primary)] mb-3">Filter</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div><label className="block text-[10px] md:text-xs font-medium text-[var(--text-muted)] mb-1">Kelas</label><select value={kelas} onChange={(e) => { const k = e.target.value; setKelas(k); const found = kelasList.find(x => x.id === k); if (found) setWaliKelas(found.waliKelas); }} className="glass-select w-full p-2 md:p-2.5 rounded-lg text-xs md:text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
+                <div><label className="block text-[10px] md:text-xs font-medium text-[var(--text-muted)] mb-1">Bulan</label><select value={bulan} onChange={(e) => setBulan(e.target.value)} className="glass-select w-full p-2 md:p-2.5 rounded-lg text-xs md:text-sm">{MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
               </div>
             </div>
           )}
 
           <div className="glass-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center">
-              <h3 className="font-bold text-[var(--text-primary)] text-base">Detail Kehadiran {selectedKelasNama}</h3>
-              <span className="badge badge-gray">{bulan}</span>
+            <div className="px-4 md:px-6 py-3 md:py-4 border-b border-[var(--border-subtle)] flex justify-between items-center">
+              <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-base truncate">Detail Kehadiran {selectedKelasNama}</h3>
+              <span className="badge badge-gray shrink-0 ml-2">{bulan}</span>
             </div>
             <div className="overflow-x-auto">
               <table className="table-premium">
@@ -262,27 +262,27 @@ function RekapPageInner() {
           ) : (
             <>
           {isAdmin && (
-            <div className="glass-card p-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Kelas</label><select value={hKelas} onChange={(e) => setHKelas(e.target.value)} className="glass-select w-full p-2.5 rounded-lg text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
-                <div><label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Bulan</label><select value={hBulan} onChange={(e) => { setHBulan(e.target.value); setHTanggal(null); }} className="glass-select w-full p-2.5 rounded-lg text-sm">{MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
+            <div className="glass-card p-4 md:p-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div><label className="block text-[10px] md:text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Kelas</label><select value={hKelas} onChange={(e) => setHKelas(e.target.value)} className="glass-select w-full p-2 md:p-2.5 rounded-lg text-xs md:text-sm">{kelasList.map((k) => (<option key={k.id} value={k.id}>{k.nama.replace(/-/g, ' ')}</option>))}</select></div>
+                <div><label className="block text-[10px] md:text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Bulan</label><select value={hBulan} onChange={(e) => { setHBulan(e.target.value); setHTanggal(null); }} className="glass-select w-full p-2 md:p-2.5 rounded-lg text-xs md:text-sm">{MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
               </div>
             </div>
           )}
 
-          <div className="glass-card p-6">
-            <h3 className="text-sm font-bold text-[var(--text-primary)] mb-4 uppercase tracking-wider">Pilih Tanggal</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div className="glass-card p-4 md:p-6">
+            <h3 className="text-xs md:text-sm font-bold text-[var(--text-primary)] mb-3 md:mb-4 uppercase tracking-wider">Pilih Tanggal</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
               {getDays(isAdmin ? hBulan : bulan).map((day) => {
                 const active = hTanggal === day.dateStr;
                 const filled = filledDates.includes(day.dateStr);
                 return (
                   <button key={day.dateStr} onClick={() => setHTanggal(day.dateStr)}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all relative overflow-hidden ${active ? 'border-[var(--brand)] bg-[var(--bg-glass)] text-[var(--text-primary)] ring-1 ring-[var(--brand)]' : 'border-[var(--border-subtle)] bg-[var(--bg-glass)] text-[var(--text-muted)] hover:border-[var(--border-default)]'}`}>
-                    <span className={`absolute top-1 right-2 text-xs font-black ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? '✓' : '✗'}</span>
-                    <span className="text-[10px] font-semibold uppercase">{day.displayDate.split(',')[0]}</span>
-                    <span className="text-lg font-extrabold mt-0.5">{day.dayNum}</span>
-                    <span className={`text-[8px] font-bold mt-1.5 uppercase tracking-wider ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? 'Tersedia' : 'Kosong'}</span>
+                    className={`flex flex-col items-center justify-center p-2 md:p-3 rounded-xl border text-center transition-all relative overflow-hidden min-h-[68px] md:min-h-0 ${active ? 'border-[var(--brand)] bg-[var(--bg-glass)] text-[var(--text-primary)] ring-1 ring-[var(--brand)]' : 'border-[var(--border-subtle)] bg-[var(--bg-glass)] text-[var(--text-muted)] hover:border-[var(--border-default)]'}`}>
+                    <span className={`absolute top-0.5 right-1 md:top-1 md:right-2 text-[10px] md:text-xs font-black ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? '✓' : '✗'}</span>
+                    <span className="text-[9px] md:text-[10px] font-semibold uppercase">{day.displayDate.split(',')[0].slice(0,3)}</span>
+                    <span className="text-base md:text-lg font-extrabold mt-0.5">{day.dayNum}</span>
+                    <span className={`hidden md:inline text-[8px] font-bold mt-1.5 uppercase tracking-wider ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? 'Tersedia' : 'Kosong'}</span>
                   </button>
                 );
               })}
@@ -290,39 +290,39 @@ function RekapPageInner() {
           </div>
 
           {hTanggal ? (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-center glass-card p-5 gap-3">
-                <div><h3 className="font-bold text-[var(--text-primary)] text-sm">Laporan: {fmtDate}</h3></div>
+            <div className="space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-card p-4 md:p-5 gap-3">
+                <div className="min-w-0"><h3 className="font-bold text-[var(--text-primary)] text-xs md:text-sm">Laporan: {fmtDate}</h3></div>
                 <div className="flex gap-2 w-full sm:w-auto">
-                  <button onClick={() => exportDailyPDF(hStudents, selectedKelasNama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary flex-1 sm:flex-initial px-5 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                  <button onClick={() => exportDailyPDF(hStudents, selectedKelasNama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary flex-1 sm:flex-initial px-4 md:px-5 py-2 text-xs md:text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4 inline mr-1 md:mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                     Export PDF
                   </button>
-                  <a href={`/attendance?kelas=${hKelas}&tanggal=${hTanggal}`} className="btn btn-secondary flex-1 sm:flex-initial px-5 py-2 text-sm font-semibold">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                  <a href={`/attendance?kelas=${hKelas}&tanggal=${hTanggal}`} className="btn btn-secondary flex-1 sm:flex-initial px-4 md:px-5 py-2 text-xs md:text-sm font-semibold">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4 inline mr-1 md:mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
                     Edit
                   </a>
                 </div>
               </div>
 
               {hLoading ? (
-                <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Memuat data...</div>
+                <div className="text-center py-8 md:py-10 text-[var(--text-muted)] font-semibold text-sm">Memuat data...</div>
               ) : !hFetched ? (
-                <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Pilih tanggal untuk melihat data.</div>
+                <div className="text-center py-8 md:py-10 text-[var(--text-muted)] font-semibold text-sm">Pilih tanggal untuk melihat data.</div>
               ) : hStudents.length === 0 ? (
-                <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Tidak ada data absensi untuk tanggal ini.</div>
+                <div className="text-center py-8 md:py-10 text-[var(--text-muted)] font-semibold text-sm">Tidak ada data absensi untuk tanggal ini.</div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">
                     {[
-                      { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]', icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-                      { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]', icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z' },
-                      { label: 'Sakit', value: hSummary.sakit, color: 'text-[var(--info)]', icon: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z' },
-                      { label: 'PKL', value: hSummary.pkl || 0, color: 'text-purple-400', icon: 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z' },
-                      { label: 'Alpa', value: hSummary.alpa, color: 'text-[var(--bearish)]', icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z' },
-                      { label: 'Total', value: hSummary.total, color: 'text-[var(--text-primary)]', icon: 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z' },
+                      { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]', icon: '...' },
+                      { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]', icon: '...' },
+                      { label: 'Sakit', value: hSummary.sakit, color: 'text-[var(--info)]', icon: '...' },
+                      { label: 'PKL', value: hSummary.pkl || 0, color: 'text-purple-400', icon: '...' },
+                      { label: 'Alpa', value: hSummary.alpa, color: 'text-[var(--bearish)]', icon: '...' },
+                      { label: 'Total', value: hSummary.total, color: 'text-[var(--text-primary)]', icon: '...' },
                     ].map((s) => (
-                      <div key={s.label} className="stat-card p-4 flex items-start gap-3">
+                      <div key={s.label} className="stat-card p-3 md:p-4 flex items-start gap-2 md:gap-3">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                           s.label === 'Hadir' ? 'bg-[rgba(34,197,94,0.12)]' :
                           s.label === 'Izin' ? 'bg-[rgba(245,158,11,0.12)]' :
@@ -354,27 +354,27 @@ function RekapPageInner() {
                   </div>
 
                   <div className="glass-card overflow-hidden">
-                    <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <h3 className="font-bold text-[var(--text-primary)] text-base">Daftar Kehadiran Harian</h3>
-                        <p className="text-xs text-[var(--text-muted)]">{fmtDate} — {selectedKelasNama || hKelas}{waliKelas ? ` — ${waliKelas}` : ''}</p>
+                    <div className="px-4 md:px-6 py-3 md:py-4 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-base">Daftar Kehadiran Harian</h3>
+                        <p className="text-[10px] md:text-xs text-[var(--text-muted)] truncate">{fmtDate} — {selectedKelasNama || hKelas}{waliKelas ? ` — ${waliKelas}` : ''}</p>
                       </div>
-                      <button onClick={() => exportDailyPDF(hStudents, selectedKelasNama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary px-4 py-1.5 text-xs font-semibold disabled:opacity-40 shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                      <button onClick={() => exportDailyPDF(hStudents, selectedKelasNama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary px-3 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-semibold disabled:opacity-40 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 md:w-3.5 md:h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                         Export PDF
                       </button>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto -mx-4 md:mx-0">
                       <table className="table-premium">
-                        <thead><tr><th className="text-center" style={{width:'48px'}}>No</th><th style={{width:'80px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'100px'}}>Status</th><th>Keterangan</th></tr></thead>
+                        <thead><tr><th className="text-center" style={{width:'36px'}}>No</th><th style={{width:'72px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'90px'}}>Status</th><th>Keterangan</th></tr></thead>
                         <tbody className="divide-y divide-[var(--border-subtle)]">
                           {hStudents.map((s, idx) => (
                             <tr key={s.siswaId} className="hover:bg-[var(--bg-glass)] transition-colors">
-                              <td className="text-center font-mono text-[var(--text-muted)] text-xs">{idx + 1}</td>
-                              <td className="font-mono text-xs">{s.nis}</td>
-                              <td><p className="font-bold text-[var(--text-primary)] text-sm">{s.nama}</p></td>
+                              <td className="text-center font-mono text-[var(--text-muted)] text-[10px] md:text-xs">{idx + 1}</td>
+                              <td className="font-mono text-[10px] md:text-xs">{s.nis}</td>
+                              <td><p className="font-bold text-[var(--text-primary)] text-xs md:text-sm">{s.nama}</p></td>
                               <td className="text-center">
-                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                                <span className={`inline-flex items-center gap-1 md:gap-1.5 px-1.5 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-bold ${
                                   s.status === 'HADIR' ? 'bg-[rgba(34,197,94,0.12)] text-[#4ade80] border border-[rgba(34,197,94,0.2)]' :
                                   s.status === 'IZIN' ? 'bg-[rgba(245,158,11,0.12)] text-[#fbbf24] border border-[rgba(245,158,11,0.2)]' :
                                   s.status === 'SAKIT' ? 'bg-[rgba(6,182,212,0.12)] text-[#67e8f9] border border-[rgba(6,182,212,0.2)]' :
@@ -382,7 +382,7 @@ function RekapPageInner() {
                                   s.status === 'ALPA' ? 'bg-[rgba(239,68,68,0.12)] text-[#f87171] border border-[rgba(239,68,68,0.2)]' :
                                   'bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] border border-[var(--border-default)]'
                                 }`}>
-                                  <span className={`w-1.5 h-1.5 rounded-full ${
+                                  <span className={`w-1 md:w-1.5 h-1 md:h-1.5 rounded-full ${
                                     s.status === 'HADIR' ? 'bg-[#4ade80]' :
                                     s.status === 'IZIN' ? 'bg-[#fbbf24]' :
                                     s.status === 'SAKIT' ? 'bg-[#67e8f9]' :
@@ -390,17 +390,19 @@ function RekapPageInner() {
                                     s.status === 'ALPA' ? 'bg-[#f87171]' :
                                     'bg-[var(--text-muted)]'
                                   }`} />
-                                  {s.status === 'BELUM' ? 'Belum' : s.status}
+                                  <span className="hidden md:inline">{s.status === 'BELUM' ? 'Belum' : s.status}</span>
+                                  <span className="md:hidden">{s.status === 'BELUM' ? '-' : s.status === 'HADIR' ? 'H' : s.status === 'IZIN' ? 'I' : s.status === 'SAKIT' ? 'S' : s.status === 'PKL' ? 'P' : s.status === 'ALPA' ? 'A' : '-'}</span>
                                 </span>
                               </td>
                               <td>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm">{s.alasan || <span className="text-[var(--text-muted)] opacity-40">-</span>}</span>
+                                <div className="flex items-center gap-1 md:gap-2">
+                                  <span className="text-[10px] md:text-sm truncate max-w-[60px] md:max-w-none">{s.alasan || <span className="text-[var(--text-muted)] opacity-40">-</span>}</span>
                                   {(s.status === 'IZIN' || s.status === 'SAKIT') && s.buktiUrl && (
                                     <button onClick={() => setSelectedPhoto(s.buktiUrl.startsWith('/uploads') ? s.buktiUrl.replace('/uploads', '/api/uploads') : s.buktiUrl)}
-                                      className="px-2.5 py-1 text-[10px] font-bold text-[var(--text-accent)] bg-[rgba(59,130,246,0.1)] hover:bg-[rgba(59,130,246,0.15)] rounded-lg border border-[rgba(59,130,246,0.2)] transition-all ml-auto shrink-0">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375 3.375 0 1 1-.75 0 .375 3.375 0 0 1 .75 0Z" /></svg>
-                                      Foto
+                                      className="px-1.5 md:px-2.5 py-0.5 md:py-1 text-[9px] md:text-[10px] font-bold text-[var(--text-accent)] bg-[rgba(59,130,246,0.1)] hover:bg-[rgba(59,130,246,0.15)] rounded-lg border border-[rgba(59,130,246,0.2)] transition-all ml-auto shrink-0">
+                                      <span className="md:hidden">📷</span>
+                                      <span className="hidden md:inline"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375 3.375 0 1 1-.75 0 .375 3.375 0 0 1 .75 0Z" /></svg>
+                                      Foto</span>
                                     </button>
                                   )}
                                 </div>

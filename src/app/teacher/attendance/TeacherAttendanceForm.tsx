@@ -192,7 +192,7 @@ export default function GuruAttendanceForm() {
               </div>
             </>
           )}
-          {students.length > 0 && <div className="flex justify-end pt-4 border-t border-[var(--border-subtle)]"><button type="submit" disabled={isSubmitting} className="btn-primary px-8 py-2.5 text-sm font-semibold disabled:opacity-40">{isSubmitting ? 'Menyimpan...' : 'Simpan Absensi'}</button></div>}
+          {students.length > 0 && <div className="flex justify-end pt-4 border-t border-[var(--border-subtle)]"><button type="submit" disabled={isSubmitting} className="btn-primary w-full md:w-auto px-5 md:px-8 py-3 md:py-2.5 text-xs md:text-sm font-semibold disabled:opacity-40">{isSubmitting ? 'Menyimpan...' : 'Simpan Absensi'}</button></div>}
         </form>
       )}
     </div>

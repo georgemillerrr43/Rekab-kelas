@@ -168,13 +168,13 @@ export default function PublicRekapPage() {
         <p>Akses publik tanpa login. Lihat rekap dan unduh PDF.</p>
       </div>
 
-      <div className="tab-switcher">
+      <div className="tab-switcher w-full md:w-auto justify-center overflow-x-auto flex-nowrap">
         <button onClick={() => setTab('bulanan')} className={tab === 'bulanan' ? 'active' : ''}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
           Rekap Bulanan
         </button>
         <button onClick={() => setTab('harian')} className={tab === 'harian' ? 'active' : ''}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
           Rekap Harian
         </button>
       </div>
@@ -261,19 +261,19 @@ export default function PublicRekapPage() {
         </div>
       </div>
 
-      <div className="glass-card p-6">
-        <h3 className="text-sm font-bold text-[var(--text-primary)] mb-4 uppercase tracking-wider">Pilih Tanggal</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+      <div className="glass-card p-4 md:p-6">
+        <h3 className="text-xs md:text-sm font-bold text-[var(--text-primary)] mb-3 md:mb-4 uppercase tracking-wider">Pilih Tanggal</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
           {getDays(hBulan).map((day) => {
             const active = hTanggal === day.dateStr;
             const filled = filledDates.includes(day.dateStr);
             return (
               <button key={day.dateStr} onClick={() => setHTanggal(day.dateStr)}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all relative overflow-hidden ${active ? 'border-[var(--brand)] bg-[var(--bg-glass)] text-[var(--text-primary)] ring-1 ring-[var(--brand)]' : 'border-[var(--border-subtle)] bg-[var(--bg-glass)] text-[var(--text-muted)] hover:border-[var(--border-default)]'}`}>
-                <span className={`absolute top-1 right-2 text-xs font-black ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? '✓' : '✗'}</span>
-                <span className="text-[10px] font-semibold uppercase">{day.displayDate.split(',')[0]}</span>
-                <span className="text-lg font-extrabold mt-0.5">{day.dayNum}</span>
-                <span className={`text-[8px] font-bold mt-1.5 uppercase tracking-wider ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? 'Tersedia' : 'Kosong'}</span>
+                className={`flex flex-col items-center justify-center p-2 md:p-3 rounded-xl border text-center transition-all relative overflow-hidden min-h-[56px] md:min-h-0 ${active ? 'border-[var(--brand)] bg-[var(--bg-glass)] text-[var(--text-primary)] ring-1 ring-[var(--brand)]' : 'border-[var(--border-subtle)] bg-[var(--bg-glass)] text-[var(--text-muted)] hover:border-[var(--border-default)]'}`}>
+                <span className={`absolute top-0.5 right-1 text-[10px] md:text-xs font-black ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? '✓' : '✗'}</span>
+                <span className="text-[9px] md:text-[10px] font-semibold uppercase">{day.displayDate.split(',')[0].slice(0,3)}</span>
+                <span className="text-base md:text-lg font-extrabold mt-0.5">{day.dayNum}</span>
+                <span className={`hidden md:inline text-[8px] font-bold mt-1.5 uppercase tracking-wider ${filled ? 'text-[var(--bullish)]' : 'text-[var(--bearish)]'}`}>{filled ? 'Tersedia' : 'Kosong'}</span>
               </button>
             );
           })}
@@ -282,23 +282,23 @@ export default function PublicRekapPage() {
 
       {hTanggal ? (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center glass-card p-5 gap-3">
-            <div><h3 className="font-bold text-[var(--text-primary)] text-sm">Laporan: {fmtDate}</h3><p className="text-xs text-[var(--text-muted)]">{selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}{selectedHKelas?.waliKelas ? ` — ${selectedHKelas.waliKelas}` : ''}</p></div>
-            <button onClick={() => exportDailyPDF(hStudents, selectedHKelas?.nama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary px-5 py-2 text-sm font-semibold disabled:opacity-40">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-card p-4 md:p-5 gap-3">
+            <div className="min-w-0"><h3 className="font-bold text-[var(--text-primary)] text-xs md:text-sm">Laporan: {fmtDate}</h3><p className="text-[10px] md:text-xs text-[var(--text-muted)] truncate">{selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}{selectedHKelas?.waliKelas ? ` — ${selectedHKelas.waliKelas}` : ''}</p></div>
+            <button onClick={() => exportDailyPDF(hStudents, selectedHKelas?.nama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary w-full sm:w-auto px-4 md:px-5 py-2 text-xs md:text-sm font-semibold disabled:opacity-40">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4 inline mr-1.5 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
               Export PDF
             </button>
           </div>
 
           {hLoading ? (
-            <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Memuat data...</div>
+            <div className="text-center py-8 md:py-10 text-[var(--text-muted)] font-semibold text-sm">Memuat data...</div>
           ) : !hFetched ? (
-            <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Pilih tanggal untuk melihat data.</div>
+            <div className="text-center py-8 md:py-10 text-[var(--text-muted)] font-semibold text-sm">Pilih tanggal untuk melihat data.</div>
           ) : hStudents.length === 0 ? (
-            <div className="text-center py-10 text-[var(--text-muted)] font-semibold">Tidak ada data absensi untuk tanggal ini.</div>
+            <div className="text-center py-8 md:py-10 text-[var(--text-muted)] font-semibold text-sm">Tidak ada data absensi untuk tanggal ini.</div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">
                 {[
                   { label: 'Hadir', value: hSummary.hadir, color: 'text-[var(--bullish)]', bg: 'bg-[rgba(34,197,94,0.12)]' },
                   { label: 'Izin', value: hSummary.izin, color: 'text-[var(--warning)]', bg: 'bg-[rgba(245,158,11,0.12)]' },
@@ -329,21 +329,21 @@ export default function PublicRekapPage() {
               </div>
 
               <div className="glass-card overflow-hidden">
-                <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
-                  <h3 className="font-bold text-[var(--text-primary)] text-base">Daftar Kehadiran</h3>
-                  <p className="text-xs text-[var(--text-muted)]">{fmtDate} — {selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}</p>
+                <div className="px-4 md:px-6 py-3 md:py-4 border-b border-[var(--border-subtle)]">
+                  <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-base">Daftar Kehadiran</h3>
+                  <p className="text-[10px] md:text-xs text-[var(--text-muted)]">{fmtDate} — {selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}</p>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto -mx-4 md:mx-0">
                   <table className="table-premium">
-                    <thead><tr><th className="text-center w-12">No</th><th>NIS</th><th>Nama</th><th className="text-center">Status</th><th>Keterangan</th></tr></thead>
+                    <thead><tr><th className="text-center" style={{width:'32px'}}>No</th><th style={{width:'70px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'80px'}}>Status</th><th>Keterangan</th></tr></thead>
                     <tbody className="divide-y divide-[var(--border-subtle)]">
                       {hStudents.map((s, idx) => (
                         <tr key={s.siswaId} className="hover:bg-[var(--bg-glass)] transition-colors">
-                          <td className="text-center font-mono text-[var(--text-muted)] text-xs">{idx + 1}</td>
-                          <td className="font-mono text-xs">{s.nis}</td>
-                          <td><p className="font-bold text-[var(--text-primary)] text-sm">{s.nama}</p></td>
+                          <td className="text-center font-mono text-[var(--text-muted)] text-[10px] md:text-xs">{idx + 1}</td>
+                          <td className="font-mono text-[10px] md:text-xs">{s.nis}</td>
+                          <td><p className="font-bold text-[var(--text-primary)] text-xs md:text-sm">{s.nama}</p></td>
                           <td className="text-center">
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                            <span className={`inline-flex items-center gap-1 md:gap-1.5 px-1.5 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-bold ${
                               s.status === 'HADIR' ? 'bg-[rgba(34,197,94,0.12)] text-[#4ade80] border border-[rgba(34,197,94,0.2)]' :
                               s.status === 'IZIN' ? 'bg-[rgba(245,158,11,0.12)] text-[#fbbf24] border border-[rgba(245,158,11,0.2)]' :
                               s.status === 'SAKIT' ? 'bg-[rgba(6,182,212,0.12)] text-[#67e8f9] border border-[rgba(6,182,212,0.2)]' :
@@ -351,17 +351,18 @@ export default function PublicRekapPage() {
                               s.status === 'ALPA' ? 'bg-[rgba(239,68,68,0.12)] text-[#f87171] border border-[rgba(239,68,68,0.2)]' :
                               'bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] border border-[var(--border-default)]'
                             }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${
+                              <span className={`w-1 md:w-1.5 h-1 md:h-1.5 rounded-full ${
                                 s.status === 'HADIR' ? 'bg-[#4ade80]' :
                                 s.status === 'IZIN' ? 'bg-[#fbbf24]' :
                                 s.status === 'SAKIT' ? 'bg-[#67e8f9]' :
                                 s.status === 'PKL' ? 'bg-[#c084fc]' :
                                 s.status === 'ALPA' ? 'bg-[#f87171]' : 'bg-[var(--text-muted)]'
                               }`} />
-                              {s.status === 'BELUM' ? 'Belum' : s.status}
+                              <span className="hidden md:inline">{s.status === 'BELUM' ? 'Belum' : s.status}</span>
+                              <span className="md:hidden">{s.status === 'BELUM' ? '-' : s.status === 'HADIR' ? 'H' : s.status === 'IZIN' ? 'I' : s.status === 'SAKIT' ? 'S' : s.status === 'PKL' ? 'P' : s.status === 'ALPA' ? 'A' : '-'}</span>
                             </span>
                           </td>
-                          <td><span className="text-sm">{s.alasan || <span className="text-[var(--text-muted)] opacity-40">-</span>}</span></td>
+                          <td><span className="text-[10px] md:text-sm">{s.alasan || <span className="text-[var(--text-muted)] opacity-40">-</span>}</span></td>
                         </tr>
                       ))}
                     </tbody>
