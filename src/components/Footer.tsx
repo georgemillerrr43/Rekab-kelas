@@ -22,7 +22,7 @@ export default function Footer() {
   let quickLinks: { href: string; label: string }[] = [];
   if (!session.isLoggedIn) {
     quickLinks = [
-      { href: '/recap/public', label: 'Rekap' },
+      { href: '/recap/public', label: 'Rekap Publik' },
       { href: '/login', label: 'Masuk' },
     ];
   } else if (isAdmin) {
@@ -51,28 +51,24 @@ export default function Footer() {
   }
 
   return (
-    <footer className="w-full border-t border-[var(--border-subtle)] bg-[var(--bg-deep)] mt-12">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-10 md:py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+    <footer className="w-full border-t border-[var(--border-subtle)] bg-[var(--bg-deep)] mt-6 md:mt-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-5 md:py-10">
+        <div className="flex flex-wrap gap-x-8 gap-y-5 md:gap-10">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-[var(--brand)] to-[#60a5fa] flex items-center justify-center text-white font-extrabold text-sm shadow-lg shadow-[var(--brand-glow)]">
+          <div className="w-full md:w-auto md:max-w-[200px] space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-[7px] bg-gradient-to-br from-[var(--brand)] to-[#818cf8] flex items-center justify-center text-white font-extrabold text-[9px] shadow-sm shadow-[var(--brand-glow)]">
                 RK
               </div>
-              <span className="text-base font-extrabold text-[var(--text-primary)] tracking-tight">
-                Rekap<span className="text-[var(--brand)]">Kelas</span>
-              </span>
+              <span className="text-[13px] font-extrabold text-[var(--text-primary)] tracking-tight">Rekap<span className="text-[var(--brand)]">Kelas</span></span>
             </div>
-            <p className="text-[13px] text-[var(--text-muted)] leading-relaxed max-w-xs">
-              Sistem absensi digital modern untuk guru, wali kelas, dan siswa. Transparan, real-time, dan siap cetak.
-            </p>
+            <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">Sistem absensi digital modern.</p>
           </div>
 
-          {/* Akses Cepat */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Akses Cepat</h4>
-            <ul className="space-y-2">
+          {/* Menu */}
+          <div className="space-y-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Menu</h4>
+            <ul className="space-y-1">
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-[13px] text-[var(--text-muted)] hover:text-[var(--brand)] transition-colors">{link.label}</Link>
@@ -82,33 +78,27 @@ export default function Footer() {
           </div>
 
           {/* Layanan */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Layanan</h4>
-            <ul className="space-y-2">
-              <li className="text-[13px] text-[var(--text-muted)]">Absensi Digital</li>
-              <li className="text-[13px] text-[var(--text-muted)]">Rekap Otomatis</li>
-              <li className="text-[13px] text-[var(--text-muted)]">Laporan Siap Cetak</li>
+          <div className="space-y-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Layanan</h4>
+            <ul className="space-y-1">
+              {['Absensi Digital', 'Rekap Otomatis', 'Siap Cetak'].map((item) => (
+                <li key={item} className="text-[13px] text-[var(--text-muted)]">{item}</li>
+              ))}
             </ul>
           </div>
 
-          {/* Tentang */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Tentang</h4>
-            <ul className="space-y-2">
-              <li className="text-[13px] text-[var(--text-muted)]">Sistem Informasi Akademik</li>
-              <li className="text-[13px] text-[var(--text-muted)]">Manajemen Absensi Terpadu</li>
-              <li className="text-[13px] text-[var(--text-muted)]">Versi 1.0.0</li>
+          {/* Info */}
+          <div className="space-y-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Info</h4>
+            <ul className="space-y-1">
+              <li className="text-[13px] text-[var(--text-muted)]">v1.0.0</li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-[var(--border-subtle)] flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-[12px] text-[var(--text-muted)]">
-            &copy; {new Date().getFullYear()} RekapKelas. All rights reserved.
-          </p>
-          <p className="text-[12px] text-[var(--text-muted)]">
-            Dibuat oleh <span className="font-semibold text-[var(--text-secondary)]">Joji</span>
-          </p>
+        <div className="mt-5 md:mt-8 pt-3 md:pt-4 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-1">
+          <p className="text-xs text-[var(--text-muted)]">&copy; {new Date().getFullYear()} RekapKelas</p>
+          <p className="text-xs text-[var(--text-muted)]">Dibuat oleh <span className="font-semibold text-[var(--text-secondary)]">Joji</span></p>
         </div>
       </div>
     </footer>

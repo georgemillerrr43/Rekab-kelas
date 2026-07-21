@@ -1,56 +1,15 @@
 {
-  "timestamp": "2026-07-21T09:00:08.065Z",
+  "timestamp": "2026-07-21T09:22:55.173Z",
   "mode": "headless",
   "workerType": "testgaps",
   "model": "sonnet",
-  "durationMs": 279605,
-  "executionId": "testgaps_1784624128460_31fxew",
+  "durationMs": 167085,
+  "executionId": "testgaps_1784625608088_6ow11r",
   "success": true,
   "findings": {
-    "sections": [
-      {
-        "title": "Ringkasan Analisis Coverage",
-        "content": "\n",
-        "level": 2
-      },
-      {
-        "title": "Coverage Saat Ini: **0%** — zero test files, zero test runner.",
-        "content": "\n---\n\n",
-        "level": 3
-      },
-      {
-        "title": "1. Fungsi/Class Tanpa Test (13 file)",
-        "content": "\n| Layer | File | Gap |\n|---|---|---|\n| Auth lib | `src/lib/auth.ts` | `encryptSession`, `decryptSession`, `hashPassword`, `verifyPassword`, `getSession`, `isAdmin`, `isSiswa` — semua utility kritis, 0 test |\n| Pure logic | `src/utils/waNotification.ts` | `buildMessage()` (4 branching paths), `extractCountryCode()` (logika 1-digit vs 2-digit) |\n| External API | `src/utils/waNotification.ts` | `sendWhatsAppNotification()` — network failure, non-200, missing token, timeout |\n| PDF export | `src/utils/pdfExport.ts` | `exportAttendanceToPDF()` — 0 baris di-test |\n| Route handler | 11 file API route | Setiap `GET`/`POST`/`PUT`/`DELETE` — 0 coverage |\n| Inline helper | `teacher/attendance/route.ts:145` | `sendWANotif()` — private function, silent failure (log-only, no throw) |\n\n",
-        "level": 2
-      },
-      {
-        "title": "2. Edge Case Gaps (16 skenario)",
-        "content": "\n| Kategori | Edge Case | Risiko |\n|---|---|---|\n| **Auth** | IV static di AES — ciphertext deterministic | MEDIUM — token identical for same session data |\n| **Auth** | Non-ASCII password (emoji, unicode) | LOW — bcrypt handle, tapi tidak ada test |\n| **Login** | `x-forwarded-proto` inconsistent → cookie `secure: false` di HTTPS | HIGH — session token bisa dikirim via HTTP |\n| **Login** | Rate limit Map memory leak (unlimited IP entries) | MEDIUM — DoS via unique IP per request |\n| **Approval** | Double approval → update tanpa transaksi | HIGH — izin status berubah tapi kehadiran gagal |\n| **Approval** | `(targetIzin.tipe as any)` — bypass TypeScript | MEDIUM — null/undefined tipe force 'IZIN' |\n| **Attendance** | NIS non-numeric → `parseInt('2024A') = 0` | LOW — sort rusuh |\n| **Attendance** | Status unknown di data array → silent skip | MEDIUM — tidak ada feedback ke user |\n| **Attendance** | Siswa tidak ditemukan → `continue` tanpa feedback | LOW |\n| **Stats** | Timezone `setHours(0,0,0,0)` — server UTC beda dengan lokal | MEDIUM — data bisa salah tanggal |\n| **Recap** | `MONTH_MAP[undefined]` → fallback silent ke bulan sekarang | MEDIUM — query salah bulan |\n| **Recap** | Tanggal di masa depan tidak divalidasi | LOW |\n| **Student Permit** | File size tepat 2MB: `>`, bukan `>=` | LOW — 2.0MB lolos |\n| **Student Permit** | `Date.now()` di filename — collision request simultan | LOW |\n| **Student Permit** | File type cek mime, bukan magic bytes | MEDIUM — bisa bypass ekstensi |\n| **Password** | Duplicate implementation (`auth/password` vs `admin/password`) | MEDIUM — fix di satu, lupa fix di satunya |\n\n",
-        "level": 2
-      },
-      {
-        "title": "3. Missing Error Handling (10 skenario)",
-        "content": "\n| Skenario | Route | Dampak |\n|---|---|---|\n| `request.json()` gagal (invalid body) | Semua POST/PUT | 500 generic, tanpa info |\n| Prisma connection down | Semua route | 500 generic, log error |\n| `writeFile` gagal (disk full) | `student/permit` | 500 tanpa cleanup file |\n| `crypto.createDecipheriv` key salah | `decryptSession` | Return null, tidak log |\n| WA gateway non-200 | `sendWhatsAppNotification` | Return `{success:false}`, tanpa retry |\n| WA gateway return non-JSON | `sendWhatsAppNotification` | `res.json()` throw → catch handle |\n| Rate limit Map memory leak | Login | Tidak pernah cleanup IP lama |\n| Rejected izin → kehadiran upsert gagal | Approval POST | **Inkonsistensi data — perlu transaction** |\n| Login 3 query sequential, 1 gagal | Login | Hanya catch generic, tidak bedain error type |\n\n",
-        "level": 2
-      },
-      {
-        "title": "4. Integration Test Gaps (8 skenario)",
-        "content": "\n| Skenario | Komponen |\n|---|---|\n| Login GURU → POST attendance → GET recap → verify data | Full flow |\n| Siswa submit izin → Guru approve → Kehadiran ter-update | Permit lifecycle |\n| Admin create class + guru → Guru login | Provisioning |\n| File upload → lihat di approval page | Upload + display |\n| Set ALPA → WA notification terkirim | Notification chain |\n| Role isolation: SISWA akses endpoint GURU, GURU akses endpoint ADMIN | Auth boundary |\n| 6x login gagal → 429 | Rate limit integration |\n| Export PDF dengan data real → verify content | PDF pipeline |\n\n---\n\n",
-        "level": 2
-      },
-      {
-        "title": "Files Written",
-        "content": "\n| File | Isi |\n|---|---|\n| `src/lib/__tests__/auth.test.ts` | encrypt/decrypt/hash/verify/getSession — 15 test cases |\n| `src/utils/__tests__/waNotification.test.ts` | extractCountryCode (5), buildMessage (6 todo), sendWhatsAppNotification (6 todo) |\n| `src/utils/__tests__/pdfExport.test.ts` | 8 test cases — empty, large, 0%/100%, unicode, edge metadata |\n| `src/app/api/auth/login/__tests__/route.test.ts` | Rate limit, validation, admin/guru login — 8 test |\n| `src/app/api/admin/approval/__tests__/route.test.ts` | Double approval, reject→ALPA, not found — 9 test |\n| `src/app/api/admin/attendance/__tests__/route.test.ts` | WA notification, skip unknown, empty array — 9 test |\n| `src/app/api/admin/classes/__tests__/route.test.ts` | CRUD, duplicate, guru creation — 6 test |\n| `src/app/api/admin/stats/__tests__/route.test.ts` | Zero attendance, top absentees, distribution — 4 test |\n| `src/app/api/admin/student/__tests__/route.test.ts` | Duplicate NIS/username, cookie auth — 4 test |\n| `src/app/api/teacher/attendance/__tests__/route.test.ts` | Role check, skip other class — 7 test |\n| `src/app/api/student/permit/__tests__/route.test.ts` | File validation (type/size), stats — 6 test |\n| `src/app/api/recap/__tests__/route.test.ts` | EN/ID month parsing, empty data — 6 test |\n| `src/app/api/auth/password/__tests__/route.test.ts` | Role-specific update, passwordPlain sync — 7 test |\n| `test-setup.ts` | Global env vars + mocks |\n| _(perlu dibuat)_ `vitest.config.ts` | Config dengan path alias, coverage threshold 80% |\n| _(perlu ditambah)_ `package.json` scripts | `\"test\": \"vitest run\"`, `\"test:coverage\": \"vitest run --coverage\"` |\n\nTotal: **~87 test cases** (+ beberapa `todo` untuk skenario yang perlu refactor `buildMessage` jadi export public).\n\n---\n\n",
-        "level": 2
-      },
-      {
-        "title": "Urutan Implementasi",
-        "content": "1. `npm install -D vitest @vitest/coverage-v8`\n2. Buat `vitest.config.ts`\n3. Ekstrak `buildMessage()` jadi export function di `waNotification.ts`\n4. Jalankan `npm test` → perbaiki mock yang kurang\n5. Target: coverage ≥ 80% di semua route handler dan utils",
-        "level": 3
-      }
-    ],
+    "sections": [],
     "codeBlocks": []
   },
-  "rawOutputPreview": "Test files di atas sudah dikirim ke permission prompt. Sementara itu, berikut ringkasan lengkap analisisnya.\n\n---\n\n## Ringkasan Analisis Coverage\n\n### Coverage Saat Ini: **0%** — zero test files, zero test runner.\n\n---\n\n## 1. Fungsi/Class Tanpa Test (13 file)\n\n| Layer | File | Gap |\n|---|---|---|\n| Auth lib | `src/lib/auth.ts` | `encryptSession`, `decryptSession`, `hashPassword`, `verifyPassword`, `getSession`, `isAdmin`, `isSiswa` — semua utility kritis, 0 test |\n| Pure logic | `src/utils/waNotification.ts` | `buildMessage()` (4 branching paths), `extractCountryCode()` (logika 1-digit vs 2-digit) |\n| External API | `src/utils/waNotification.ts` | `sendWhatsAppNotification()` — network failure, non-200, missing token, timeout |\n| PDF export | `src/utils/pdfExport.ts` | `exportAttendanceToPDF()` — 0 baris di-test |\n| Route handler | 11 file API route | Setiap `GET`/`POST`/`PUT`/`DELETE` — 0 coverage |\n| Inline helper | `teacher/attendance/route.ts:145` | `sendWANotif()` — private function, silent failure (log-only, no throw) |\n\n## 2. Edge Case Gaps (16 skenario)\n\n| Kategori | Edge Case | Risiko |\n|---|---|---|\n| **Auth** | IV static di AES — ciphertext deterministic | MEDIUM — token identical for same session data |\n| **Auth** | Non-ASCII password (emoji, unicode) | LOW — bcrypt handle, tapi tidak ada test |\n| **Login** | `x-forwarded-proto` inconsistent → cookie `secure: false` di HTTPS | HIGH — session token bisa dikirim via HTTP |\n| **Login** | Rate limit Map memory leak (unlimited IP entries) | MEDIUM — DoS via unique IP per request |\n| **Approval** | Double approval → update tanpa transaksi | HIGH — izin status berubah tapi kehadiran gagal |\n| **Approval** | `(targetIzin.tipe as any)` — bypass TypeScript | MEDIUM — null/undefined tipe force 'IZIN' |\n| **Attendance** | NIS non-numeric → `parseInt('2024A') = 0` | LOW — sort rusuh |\n| **Attendance** | Status unknown di data array → silent skip | MEDIUM — tidak ada feedback ke user |\n| **Attendance** | Siswa tidak d",
-  "rawOutputLength": 6253
+  "rawOutputPreview": "**Key takeaway:** This codebase has 23 API route handlers and 4 utility modules — zero tests. The first 15 tests (auth + login) cover the entire security boundary. After those, the 18 approval/attendance tests cover every business decision branch. Everything else is mechanical CRUD that can wait.\n\nWant me to set up the test framework (add Vitest + dependencies to `package.json`) and write the first batch of auth tests?\n",
+  "rawOutputLength": 423
 }

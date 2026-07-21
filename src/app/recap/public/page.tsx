@@ -218,7 +218,13 @@ export default function PublicRekapPage() {
         <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
           <div className="flex justify-between items-center">
             <h3 className="font-bold text-[var(--text-primary)]">Kehadiran {selectedKelas?.nama?.replace(/-/g, ' ') || '-'}</h3>
-            <span className="badge badge-gray">{bulan}</span>
+            <div className="flex items-center gap-1.5">
+              <button type="button" onClick={() => setSortMode('nis')}
+                className={`px-2 py-1 text-[9px] font-bold rounded-full border transition-all ${sortMode === 'nis' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>NIS</button>
+              <button type="button" onClick={() => setSortMode('abjad')}
+                className={`px-2 py-1 text-[9px] font-bold rounded-full border transition-all ${sortMode === 'abjad' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>A-Z</button>
+              <span className="badge badge-gray shrink-0">{bulan}</span>
+            </div>
           </div>
           {selectedKelas?.waliKelas && <p className="text-xs text-[var(--text-muted)] mt-1">Wali Kelas: {selectedKelas.waliKelas}</p>}
         </div>
@@ -230,7 +236,7 @@ export default function PublicRekapPage() {
                 <tr><td colSpan={9} className="p-10 text-center text-[var(--text-muted)]">
                   {isLoading || !kelasId ? 'Memuat...' : 'Tidak ada data absensi untuk periode ini.'}
                 </td></tr>
-              ) : list.map((item, i) => (
+              ) : [...list].sort((a, b) => sortMode === 'abjad' ? a.nama.localeCompare(b.nama, 'id') : (parseInt(a.nis)||0)-(parseInt(b.nis)||0)).map((item, i) => (
                 <tr key={item.nis} className="hover:bg-[var(--bg-glass)]">
                   <td className="text-center text-[var(--text-muted)]">{i + 1}</td>
                   <td className="font-mono text-xs">{item.nis}</td>
