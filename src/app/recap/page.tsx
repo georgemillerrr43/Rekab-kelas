@@ -162,7 +162,16 @@ function RekapPageInner() {
   return (
     <div className="space-y-4 md:space-y-6 animate-fade-in px-2 md:px-0">
       <div className="page-header flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 p-4 md:p-6">
-        <div className="min-w-0"><span className="badge badge-gray mb-1.5 md:mb-2">Rekapitulasi</span><h1 className="text-lg md:text-2xl">Rekapitulasi Kehadiran Kelas</h1><p className="text-xs md:text-sm">Akumulasi otomatis dan download laporan siap cetak. {waliKelas && <span className="text-[var(--text-accent)]">Wali Kelas: {waliKelas}</span>}</p></div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 mb-1.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--brand)]/20 to-[#60a5fa]/10 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--brand)" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+            </div>
+            <span className="badge badge-gray">Rekapitulasi</span>
+          </div>
+          <h1 className="text-lg md:text-2xl">Rekapitulasi Kehadiran Kelas</h1>
+          <p className="text-xs md:text-sm">Akumulasi otomatis dan download laporan siap cetak. {waliKelas && <span className="text-[var(--text-accent)]">Wali Kelas: {waliKelas}</span>}</p>
+        </div>
         <div className="tab-switcher w-full md:w-auto justify-center md:justify-start overflow-x-auto flex-nowrap shrink-0">
           <button onClick={() => setTab('bulanan')} className={tab === 'bulanan' ? 'active' : ''}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
@@ -357,48 +366,32 @@ function RekapPageInner() {
                         Export PDF
                       </button>
                     </div>
-                    <div className="overflow-x-auto -mx-4 md:mx-0">
+                    <div className="overflow-x-auto">
                       <table className="table-premium">
-                        <thead><tr><th className="text-center" style={{width:'36px'}}>No</th><th style={{width:'72px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'90px'}}>Status</th><th>Keterangan</th></tr></thead>
+                        <thead><tr><th className="text-center w-16">No</th><th style={{width:'80px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'90px'}}>Status</th><th>Keterangan</th></tr></thead>
                         <tbody className="divide-y divide-[var(--border-subtle)]">
                           {hStudents.map((s, idx) => (
                             <tr key={s.siswaId} className="hover:bg-[var(--bg-glass)] transition-colors">
-                              <td className="text-center font-mono text-[var(--text-muted)] text-[10px] md:text-xs">{idx + 1}</td>
-                              <td className="font-mono text-[10px] md:text-xs">{s.nis}</td>
-                              <td><p className="font-bold text-[var(--text-primary)] text-xs md:text-sm">{s.nama}</p></td>
-                              <td className="text-center">
-                                <span className={`inline-flex items-center gap-1 md:gap-1.5 px-1.5 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-bold ${
-                                  s.status === 'HADIR' ? 'bg-[rgba(34,197,94,0.12)] text-[#4ade80] border border-[rgba(34,197,94,0.2)]' :
-                                  s.status === 'IZIN' ? 'bg-[rgba(245,158,11,0.12)] text-[#fbbf24] border border-[rgba(245,158,11,0.2)]' :
-                                  s.status === 'SAKIT' ? 'bg-[rgba(6,182,212,0.12)] text-[#67e8f9] border border-[rgba(6,182,212,0.2)]' :
-                                  s.status === 'PKL' ? 'bg-[rgba(168,85,247,0.12)] text-[#c084fc] border border-[rgba(168,85,247,0.2)]' :
-                                  s.status === 'ALPA' ? 'bg-[rgba(239,68,68,0.12)] text-[#f87171] border border-[rgba(239,68,68,0.2)]' :
-                                  'bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] border border-[var(--border-default)]'
-                                }`}>
-                                  <span className={`w-1 md:w-1.5 h-1 md:h-1.5 rounded-full ${
-                                    s.status === 'HADIR' ? 'bg-[#4ade80]' :
-                                    s.status === 'IZIN' ? 'bg-[#fbbf24]' :
-                                    s.status === 'SAKIT' ? 'bg-[#67e8f9]' :
-                                    s.status === 'PKL' ? 'bg-[#c084fc]' :
-                                    s.status === 'ALPA' ? 'bg-[#f87171]' :
-                                    'bg-[var(--text-muted)]'
-                                  }`} />
-                                  <span className="hidden md:inline">{s.status === 'BELUM' ? 'Belum' : s.status}</span>
-                                  <span className="md:hidden text-[9px] leading-none">{s.status === 'BELUM' ? '-' : s.status === 'HADIR' ? 'H' : s.status === 'IZIN' ? 'I' : s.status === 'SAKIT' ? 'S' : s.status === 'PKL' ? 'P' : s.status === 'ALPA' ? 'A' : '-'}</span>
-                                </span>
-                              </td>
+                              <td className="text-center font-mono text-[var(--text-muted)]">{idx + 1}</td>
+                              <td className="font-mono">{s.nis}</td>
+                              <td><p className="font-bold text-[var(--text-primary)] text-sm">{s.nama}</p></td>
+                              <td className="text-center"><span className={`font-semibold ${
+                                s.status === 'HADIR' ? 'text-[var(--bullish)]' :
+                                s.status === 'IZIN' ? 'text-[var(--warning)]' :
+                                s.status === 'SAKIT' ? 'text-[var(--info)]' :
+                                s.status === 'PKL' ? 'text-purple-400' :
+                                s.status === 'ALPA' ? 'text-[var(--bearish)]' :
+                                'text-[var(--text-muted)]'
+                              }`}>{s.status === 'BELUM' ? '-' : s.status}</span></td>
                               <td>
-                                <div className="flex items-center gap-1 md:gap-2">
-                                  <span className="text-[10px] md:text-sm truncate max-w-[60px] md:max-w-none">{s.alasan || <span className="text-[var(--text-muted)] opacity-40">-</span>}</span>
-                                  {(s.status === 'IZIN' || s.status === 'SAKIT') && s.buktiUrl && (
-                                    <button onClick={() => setSelectedPhoto(s.buktiUrl.startsWith('/uploads') ? s.buktiUrl.replace('/uploads', '/api/uploads') : s.buktiUrl)}
-                                      className="px-1.5 md:px-2.5 py-0.5 md:py-1 text-[9px] md:text-[10px] font-bold text-[var(--text-accent)] bg-[rgba(59,130,246,0.1)] hover:bg-[rgba(59,130,246,0.15)] rounded-lg border border-[rgba(59,130,246,0.2)] transition-all ml-auto shrink-0">
-                                      <span className="md:hidden">📷</span>
-                                      <span className="hidden md:inline"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375 3.375 0 1 1-.75 0 .375 3.375 0 0 1 .75 0Z" /></svg>
-                                      Foto</span>
-                                    </button>
-                                  )}
-                                </div>
+                                <span>{s.alasan || <span className="opacity-30">-</span>}</span>
+                                {(s.status === 'IZIN' || s.status === 'SAKIT') && s.buktiUrl && (
+                                  <button onClick={() => setSelectedPhoto(s.buktiUrl.startsWith('/uploads') ? s.buktiUrl.replace('/uploads', '/api/uploads') : s.buktiUrl)}
+                                    className="ml-2 px-2 py-1 text-[10px] font-bold text-[var(--text-accent)] bg-[rgba(59,130,246,0.1)] hover:bg-[rgba(59,130,246,0.15)] rounded-lg border border-[rgba(59,130,246,0.2)] transition-all shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375 3.375 0 1 1-.75 0 .375 3.375 0 0 1 .75 0Z" /></svg>
+                                    Foto
+                                  </button>
+                                )}
                               </td>
                             </tr>
                           ))}

@@ -43,21 +43,27 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-deep)] p-4 relative overflow-hidden">
-      {/* Mesh gradient background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 -left-40 w-[500px] h-[500px] bg-[var(--brand)]/10 rounded-full blur-[140px]" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-[#60a5fa]/8 rounded-full blur-[160px]" />
-        <div className="absolute -bottom-40 left-1/3 w-[400px] h-[400px] bg-[var(--accent)]/5 rounded-full blur-[120px]" />
+      {/* Animated background blobs */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-20 animate-blob"
+          style={{ background: 'radial-gradient(circle, var(--brand) 0%, transparent 70%)' }}
+        />
+        <div className="absolute top-1/3 -right-32 w-[450px] h-[450px] rounded-full opacity-15 animate-blob"
+          style={{ animationDelay: '-3s', background: 'radial-gradient(circle, #60a5fa 0%, transparent 70%)' }}
+        />
+        <div className="absolute -bottom-32 left-1/3 w-[400px] h-[400px] rounded-full opacity-10 animate-blob"
+          style={{ animationDelay: '-6s', background: 'radial-gradient(circle, var(--accent) 0%, transparent 70%)' }}
+        />
       </div>
 
-      {/* Subtle grid pattern overlay */}
-      <div className="absolute inset-0 opacity-50"
-        style={{ backgroundImage: 'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiIGZpbGwtcnVsZT0ibm9uemVybyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+")' }}
+      {/* Tiny dot grid overlay */}
+      <div className="absolute inset-0 opacity-[0.04]"
+        style={{ backgroundImage: 'radial-gradient(var(--text-primary) 1px, transparent 1px)', backgroundSize: '40px 40px' }}
       />
 
-      <div className="w-full max-w-md relative z-10 animate-fade-in">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-[18px] bg-gradient-to-br from-[var(--brand)] to-[#60a5fa] text-white font-extrabold text-2xl mb-5 shadow-2xl shadow-[var(--brand-glow)] ring-[3px] ring-white/[0.06]">
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-10 animate-fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-[20px] bg-gradient-to-br from-[var(--brand)] to-[#60a5fa] text-white font-extrabold text-2xl mb-5 shadow-2xl shadow-[var(--brand-glow)] ring-[2px] ring-white/[0.08] animate-float">
             RK
           </div>
           <h1 className="text-[28px] font-extrabold text-[var(--text-primary)] tracking-tight leading-none">
@@ -66,14 +72,14 @@ export default function LoginPage() {
           <p className="text-[var(--text-muted)] text-sm mt-2 font-medium">Masuk ke akun Anda</p>
         </div>
 
-        <div className="glass rounded-[20px] p-8 space-y-6">
+        <div className="glass rounded-[20px] p-8 space-y-6 animate-scale-in">
           {error && (
-            <div className="animate-slide-down p-4 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.2)] rounded-[14px]">
+            <div className="p-4 bg-[rgba(251,113,133,0.08)] border border-[rgba(251,113,133,0.15)] rounded-[14px] animate-slide-down">
               <div className="flex gap-3">
                 <svg className="w-5 h-5 text-[var(--bearish)] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-[#f87171] text-sm font-medium">{error}</p>
+                <p className="text-[var(--bearish)] text-sm font-medium">{error}</p>
               </div>
             </div>
           )}
@@ -86,7 +92,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Masukkan username"
-                className="glass-input w-full px-4 py-3 text-sm transition-all duration-200 focus:ring-[3px]"
+                className="glass-input w-full px-4 py-3.5 text-sm transition-all duration-200"
                 required
                 autoComplete="username"
               />
@@ -100,7 +106,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password"
-                  className="glass-input w-full px-4 py-3 text-sm pr-12 transition-all duration-200 focus:ring-[3px]"
+                  className="glass-input w-full px-4 py-3.5 text-sm pr-12 transition-all duration-200"
                   required
                   autoComplete="current-password"
                 />
@@ -110,12 +116,12 @@ export default function LoginPage() {
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
                 >
                   {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
                     </svg>
                   )}
@@ -126,7 +132,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full py-3 text-sm font-bold mt-2 flex items-center justify-center active:scale-[0.98] transition-transform"
+              className="btn-primary w-full py-3.5 text-sm font-bold mt-2 flex items-center justify-center active:scale-[0.98] transition-transform"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -160,7 +166,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 animate-fade-in">
           <p className="text-sm text-[var(--text-muted)]/60 font-medium">Sistem absensi terintegrasi untuk sekolah</p>
         </div>
       </div>

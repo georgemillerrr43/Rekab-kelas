@@ -161,11 +161,16 @@ export default function PublicRekapPage() {
   const fmtDate = hTanggal ? new Date(hTanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="page-header">
-        <span className="badge badge-gray mb-2">Publik</span>
-        <h1>Rekapitulasi Kehadiran</h1>
-        <p>Akses publik tanpa login. Lihat rekap dan unduh PDF.</p>
+    <div className="space-y-5 md:space-y-6 animate-fade-in">
+      <div className="page-header p-4 md:p-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--brand)]/20 to-[#60a5fa]/10 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--brand)" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+          </div>
+          <span className="badge badge-gray">Publik</span>
+        </div>
+        <h1 className="text-xl md:text-2xl">Rekapitulasi Kehadiran</h1>
+        <p className="text-xs md:text-sm">Akses publik tanpa login. Lihat rekap dan unduh PDF.</p>
       </div>
 
       <div className="tab-switcher w-full md:w-auto justify-center overflow-x-auto flex-nowrap">
@@ -326,36 +331,24 @@ export default function PublicRekapPage() {
                   <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-base">Daftar Kehadiran</h3>
                   <p className="text-[10px] md:text-xs text-[var(--text-muted)]">{fmtDate} — {selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}</p>
                 </div>
-                <div className="overflow-x-auto -mx-4 md:mx-0">
+                <div className="overflow-x-auto">
                   <table className="table-premium">
-                    <thead><tr><th className="text-center" style={{width:'32px'}}>No</th><th style={{width:'70px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'80px'}}>Status</th><th>Keterangan</th></tr></thead>
+                    <thead><tr><th className="text-center w-16">No</th><th style={{width:'80px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'90px'}}>Status</th><th>Keterangan</th></tr></thead>
                     <tbody className="divide-y divide-[var(--border-subtle)]">
                       {hStudents.map((s, idx) => (
                         <tr key={s.siswaId} className="hover:bg-[var(--bg-glass)] transition-colors">
-                          <td className="text-center font-mono text-[var(--text-muted)] text-[10px] md:text-xs">{idx + 1}</td>
-                          <td className="font-mono text-[10px] md:text-xs">{s.nis}</td>
-                          <td><p className="font-bold text-[var(--text-primary)] text-xs md:text-sm">{s.nama}</p></td>
-                          <td className="text-center">
-                            <span className={`inline-flex items-center gap-1 md:gap-1.5 px-1.5 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-bold ${
-                              s.status === 'HADIR' ? 'bg-[rgba(34,197,94,0.12)] text-[#4ade80] border border-[rgba(34,197,94,0.2)]' :
-                              s.status === 'IZIN' ? 'bg-[rgba(245,158,11,0.12)] text-[#fbbf24] border border-[rgba(245,158,11,0.2)]' :
-                              s.status === 'SAKIT' ? 'bg-[rgba(6,182,212,0.12)] text-[#67e8f9] border border-[rgba(6,182,212,0.2)]' :
-                              s.status === 'PKL' ? 'bg-[rgba(168,85,247,0.12)] text-[#c084fc] border border-[rgba(168,85,247,0.2)]' :
-                              s.status === 'ALPA' ? 'bg-[rgba(239,68,68,0.12)] text-[#f87171] border border-[rgba(239,68,68,0.2)]' :
-                              'bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] border border-[var(--border-default)]'
-                            }`}>
-                              <span className={`w-1 md:w-1.5 h-1 md:h-1.5 rounded-full ${
-                                s.status === 'HADIR' ? 'bg-[#4ade80]' :
-                                s.status === 'IZIN' ? 'bg-[#fbbf24]' :
-                                s.status === 'SAKIT' ? 'bg-[#67e8f9]' :
-                                s.status === 'PKL' ? 'bg-[#c084fc]' :
-                                s.status === 'ALPA' ? 'bg-[#f87171]' : 'bg-[var(--text-muted)]'
-                              }`} />
-                              <span className="hidden md:inline">{s.status === 'BELUM' ? 'Belum' : s.status}</span>
-                              <span className="md:hidden">{s.status === 'BELUM' ? '-' : s.status === 'HADIR' ? 'H' : s.status === 'IZIN' ? 'I' : s.status === 'SAKIT' ? 'S' : s.status === 'PKL' ? 'P' : s.status === 'ALPA' ? 'A' : '-'}</span>
-                            </span>
-                          </td>
-                          <td><span className="text-[10px] md:text-sm">{s.alasan || <span className="text-[var(--text-muted)] opacity-40">-</span>}</span></td>
+                          <td className="text-center font-mono text-[var(--text-muted)]">{idx + 1}</td>
+                          <td className="font-mono">{s.nis}</td>
+                          <td><p className="font-bold text-[var(--text-primary)] text-sm">{s.nama}</p></td>
+                          <td className="text-center"><span className={`font-semibold ${
+                                s.status === 'HADIR' ? 'text-[var(--bullish)]' :
+                                s.status === 'IZIN' ? 'text-[var(--warning)]' :
+                                s.status === 'SAKIT' ? 'text-[var(--info)]' :
+                                s.status === 'PKL' ? 'text-purple-400' :
+                                s.status === 'ALPA' ? 'text-[var(--bearish)]' :
+                                'text-[var(--text-muted)]'
+                              }`}>{s.status === 'BELUM' ? '-' : s.status}</span></td>
+                          <td><span>{s.alasan || <span className="opacity-30">-</span>}</span></td>
                         </tr>
                       ))}
                     </tbody>
@@ -371,9 +364,6 @@ export default function PublicRekapPage() {
       </>
       )}
 
-      <div className="text-center py-4">
-        <p className="text-xs text-[var(--text-muted)]">Data publik. Untuk kelola absensi <a href="/login" className="text-[var(--text-accent)] hover:underline">login</a>.</p>
-      </div>
     </div>
   );
 }

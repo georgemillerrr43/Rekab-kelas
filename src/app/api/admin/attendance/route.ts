@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       include: { izin: true },
     });
 
-    // ponytail: izin via tanggal — PENDING jangan set status, biarkan BELUM
+    // izin via tanggal — PENDING jangan set status, biarkan BELUM
     const allIzin = await prisma.izin.findMany({
       where: { siswaId: { in: studentIds }, tanggal: targetDate },
       select: { siswaId: true, statusApproval: true },
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
           });
         }
       } else if (status === 'IZIN' || status === 'SAKIT') {
-        // ponytail: izin/sakit from teacher = PENDING, not auto-approved
+        // izin/sakit from teacher = PENDING, not auto-approved
         let newIzin;
         if (existingKhd?.izinId) {
           newIzin = await prisma.izin.update({
