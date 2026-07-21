@@ -92,6 +92,7 @@ function RekapPageInner() {
   const [hFetched, setHFetched] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [filledDates, setFilledDates] = useState<string[]>([]);
+  const [sortMode, setSortMode] = useState<'nis' | 'abjad'>('nis');
 
   // Get session for role detection
   useEffect(() => {
@@ -206,10 +207,30 @@ function RekapPageInner() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-            <div className="stat-card p-3 md:p-4"><p className="label text-[10px] md:text-xs">Total Siswa</p><p className="value text-base md:text-lg text-[var(--text-primary)]">{total} Siswa</p><span className="text-[10px] md:text-[11px] text-[var(--text-muted)]">Terdaftar Aktif</span></div>
-            <div className="stat-card p-3 md:p-4"><p className="label text-[10px] md:text-xs">Rata-rata Kehadiran</p><p className="value text-base md:text-lg text-[var(--bullish)]">{avg.toFixed(1)}%</p><div className="progress-bar mt-1.5 md:mt-2"><div className="progress-bar-fill bg-[var(--bullish)]" style={{ width: `${avg}%` }} /></div></div>
-            <div className="stat-card p-3 md:p-4"><p className="label text-[10px] md:text-xs">Akumulasi Alpa</p><p className="value text-base md:text-lg text-[var(--bearish)]">{totalAlpa} Kali</p><span className="text-[10px] md:text-[11px] text-[var(--bearish)] font-medium">Perlu Atensi</span></div>
-            <div className="stat-card p-3 md:p-4"><p className="label text-[10px] md:text-xs">Total Izin / Sakit</p><p className="value text-base md:text-lg text-[var(--warning)]">{totalIzinSakit} Kali</p><span className="text-[10px] md:text-[11px] text-[var(--text-muted)]">Disertai Bukti</span></div>
+            <div className="stat-card p-3 md:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-[rgba(148,163,184,0.1)] flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--text-muted)" className="w-4 h-4 md:w-4.5 md:h-4.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+              </div>
+              <div className="min-w-0"><p className="label text-[10px] md:text-xs">Total Siswa</p><p className="value text-base md:text-lg text-[var(--text-primary)]">{total} Siswa</p><span className="text-[10px] md:text-[11px] text-[var(--text-muted)]">Terdaftar Aktif</span></div>
+            </div>
+            <div className="stat-card p-3 md:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-[rgba(52,211,153,0.12)] flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bullish)" className="w-4 h-4 md:w-4.5 md:h-4.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+              </div>
+              <div className="min-w-0"><p className="label text-[10px] md:text-xs">Rata-rata Hadir</p><p className="value text-base md:text-lg text-[var(--bullish)]">{avg.toFixed(1)}%</p><div className="progress-bar mt-1.5 md:mt-2"><div className="progress-bar-fill bg-[var(--bullish)]" style={{ width: `${avg}%` }} /></div></div>
+            </div>
+            <div className="stat-card p-3 md:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-[rgba(244,63,94,0.12)] flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bearish)" className="w-4 h-4 md:w-4.5 md:h-4.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" /></svg>
+              </div>
+              <div className="min-w-0"><p className="label text-[10px] md:text-xs">Akumulasi Alpa</p><p className="value text-base md:text-lg text-[var(--bearish)]">{totalAlpa} Kali</p><span className="text-[10px] md:text-[11px] text-[var(--bearish)] font-medium">Perlu Atensi</span></div>
+            </div>
+            <div className="stat-card p-3 md:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-[rgba(245,158,11,0.12)] flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--warning)" className="w-4 h-4 md:w-4.5 md:h-4.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+              </div>
+              <div className="min-w-0"><p className="label text-[10px] md:text-xs">Izin / Sakit</p><p className="value text-base md:text-lg text-[var(--warning)]">{totalIzinSakit} Kali</p><span className="text-[10px] md:text-[11px] text-[var(--text-muted)]">Disertai Bukti</span></div>
+            </div>
           </div>
 
           {isAdmin && (
@@ -223,9 +244,15 @@ function RekapPageInner() {
           )}
 
           <div className="glass-card overflow-hidden">
-            <div className="px-4 md:px-6 py-3 md:py-4 border-b border-[var(--border-subtle)] flex justify-between items-center">
+            <div className="px-4 md:px-6 py-3 md:py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2">
               <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-base truncate">Detail Kehadiran {selectedKelasNama}</h3>
-              <span className="badge badge-gray shrink-0 ml-2">{bulan}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <button type="button" onClick={() => setSortMode('nis')}
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-full border transition-all ${sortMode === 'nis' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>NIS</button>
+                <button type="button" onClick={() => setSortMode('abjad')}
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-full border transition-all ${sortMode === 'abjad' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>A-Z</button>
+                <span className="badge badge-gray">{bulan}</span>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="table-premium">
@@ -233,7 +260,7 @@ function RekapPageInner() {
                 <tbody className="divide-y divide-[var(--border-subtle)]">
                   {isLoading ? <tr><td colSpan={9} className="p-10 text-center text-[var(--text-muted)] text-sm">Memuat...</td></tr>
                     : rekapList.length === 0 ? <tr><td colSpan={9} className="p-10 text-center text-[var(--text-muted)] text-sm">Belum ada data absensi bulan ini.</td></tr>
-                    : rekapList.map((item, i) => (
+                    : [...rekapList].sort((a, b) => sortMode === 'abjad' ? a.nama.localeCompare(b.nama, 'id') : (parseInt(a.nis)||0)-(parseInt(b.nis)||0)).map((item, i) => (
                       <tr key={item.nis} className="hover:bg-[var(--bg-glass)] transition-colors">
                         <td className="text-center font-mono text-[var(--text-muted)]">{i + 1}</td>
                         <td className="font-mono text-xs">{item.nis}</td>
@@ -361,16 +388,22 @@ function RekapPageInner() {
                         <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-base">Daftar Kehadiran Harian</h3>
                         <p className="text-[10px] md:text-xs text-[var(--text-muted)] truncate">{fmtDate} — {selectedKelasNama || hKelas}{waliKelas ? ` — ${waliKelas}` : ''}</p>
                       </div>
-                      <button onClick={() => exportDailyPDF(hStudents, selectedKelasNama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary px-3 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-semibold disabled:opacity-40 shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 md:w-3.5 md:h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                        Export PDF
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => setSortMode('nis')}
+                          className={`px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-full border transition-all ${sortMode === 'nis' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>NIS</button>
+                        <button type="button" onClick={() => setSortMode('abjad')}
+                          className={`px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-full border transition-all ${sortMode === 'abjad' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>A-Z</button>
+                        <button onClick={() => exportDailyPDF(hStudents, selectedKelasNama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary px-3 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-semibold disabled:opacity-40 shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 md:w-3.5 md:h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                          Export PDF
+                        </button>
+                      </div>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="table-premium">
                         <thead><tr><th className="text-center w-16">No</th><th style={{width:'80px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'90px'}}>Status</th><th>Keterangan</th></tr></thead>
                         <tbody className="divide-y divide-[var(--border-subtle)]">
-                          {hStudents.map((s, idx) => (
+                          {[...hStudents].sort((a, b) => sortMode === 'abjad' ? a.nama.localeCompare(b.nama, 'id') : (parseInt(a.nis)||0)-(parseInt(b.nis)||0)).map((s, idx) => (
                             <tr key={s.siswaId} className="hover:bg-[var(--bg-glass)] transition-colors">
                               <td className="text-center font-mono text-[var(--text-muted)]">{idx + 1}</td>
                               <td className="font-mono">{s.nis}</td>

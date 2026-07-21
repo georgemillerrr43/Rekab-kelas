@@ -90,6 +90,7 @@ export default function PublicRekapPage() {
   const [hLoading, setHLoading] = useState(false);
   const [hFetched, setHFetched] = useState(false);
   const [filledDates, setFilledDates] = useState<string[]>([]);
+  const [sortMode, setSortMode] = useState<'nis' | 'abjad'>('nis');
 
   // Fetch kelas list
   useEffect(() => {
@@ -327,15 +328,23 @@ export default function PublicRekapPage() {
               </div>
 
               <div className="glass-card overflow-hidden">
-                <div className="px-4 md:px-6 py-3 md:py-4 border-b border-[var(--border-subtle)]">
-                  <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-base">Daftar Kehadiran</h3>
-                  <p className="text-[10px] md:text-xs text-[var(--text-muted)]">{fmtDate} — {selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}</p>
+                <div className="px-4 md:px-6 py-3 md:py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-base">Daftar Kehadiran</h3>
+                    <p className="text-[10px] md:text-xs text-[var(--text-muted)]">{fmtDate} — {selectedHKelas?.nama?.replace(/-/g, ' ') || '-'}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onClick={() => setSortMode('nis')}
+                      className={`px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-full border transition-all ${sortMode === 'nis' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>NIS</button>
+                    <button type="button" onClick={() => setSortMode('abjad')}
+                      className={`px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-full border transition-all ${sortMode === 'abjad' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>A-Z</button>
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="table-premium">
                     <thead><tr><th className="text-center w-16">No</th><th style={{width:'80px'}}>NIS</th><th>Nama</th><th className="text-center" style={{width:'90px'}}>Status</th><th>Keterangan</th></tr></thead>
                     <tbody className="divide-y divide-[var(--border-subtle)]">
-                      {hStudents.map((s, idx) => (
+                      {[...hStudents].sort((a, b) => sortMode === 'abjad' ? a.nama.localeCompare(b.nama, 'id') : (parseInt(a.nis)||0)-(parseInt(b.nis)||0)).map((s, idx) => (
                         <tr key={s.siswaId} className="hover:bg-[var(--bg-glass)] transition-colors">
                           <td className="text-center font-mono text-[var(--text-muted)]">{idx + 1}</td>
                           <td className="font-mono">{s.nis}</td>

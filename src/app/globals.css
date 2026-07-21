@@ -4,9 +4,9 @@
 
 @layer base {
   :root, [data-theme="dark"] {
-    --bg-deep: #060d1a;
-    --bg-surface: rgba(12, 20, 38, 0.88);
-    --bg-elevated: rgba(18, 28, 50, 0.94);
+    --bg-deep: #050a18;
+    --bg-surface: rgba(10, 18, 36, 0.88);
+    --bg-elevated: rgba(16, 26, 48, 0.94);
     --bg-glass: rgba(255, 255, 255, 0.04);
     --bg-glass-hover: rgba(255, 255, 255, 0.08);
     --bg-glass-active: rgba(255, 255, 255, 0.13);
@@ -199,7 +199,7 @@
   .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--brand) 0%, #6b5fff 100%);
+    background: linear-gradient(135deg, var(--brand), var(--brand-hover));
     color: #fff;
     box-shadow: 0 4px 20px var(--brand-glow);
     border: none;
