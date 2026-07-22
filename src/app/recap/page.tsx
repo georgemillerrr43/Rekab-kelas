@@ -93,6 +93,7 @@ function RekapPageInner() {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [filledDates, setFilledDates] = useState<string[]>([]);
   const [sortMode, setSortMode] = useState<'nis' | 'abjad'>('nis');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; loading: boolean }>({ show: false, loading: false });
 
   // Get session for role detection
   useEffect(() => {
@@ -393,6 +394,13 @@ function RekapPageInner() {
                           className={`px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-full border transition-all ${sortMode === 'nis' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>NIS</button>
                         <button type="button" onClick={() => setSortMode('abjad')}
                           className={`px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-full border transition-all ${sortMode === 'abjad' ? 'bg-[var(--brand)] text-white border-[var(--brand)]' : 'bg-[var(--bg-glass)] text-[var(--text-muted)] border-[var(--border-default)]'}`}>A-Z</button>
+                        {isAdmin && hFetched && hStudents.length > 0 && (
+                          <button onClick={() => setDeleteConfirm({ show: true, loading: false })}
+                            className="px-3 py-1 text-[10px] font-bold rounded-full border border-[rgba(244,63,94,0.2)] bg-[rgba(244,63,94,0.1)] text-[var(--bearish)] hover:bg-[rgba(244,63,94,0.18)] transition-all shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                            Hapus
+                          </button>
+                        )}
                         <button onClick={() => exportDailyPDF(hStudents, selectedKelasNama || hKelas, hTanggal)} disabled={hStudents.length === 0} className="btn-primary px-3 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-semibold disabled:opacity-40 shrink-0">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 md:w-3.5 md:h-3.5 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                           Export PDF
@@ -450,6 +458,38 @@ function RekapPageInner() {
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <div className="p-1"><img src={selectedPhoto} alt="Bukti" className="w-full h-auto max-h-[80vh] object-contain rounded-2xl" /></div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setDeleteConfirm({ show: false, loading: false })}>
+          <div className="modal-panel max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-[rgba(244,63,94,0.12)] flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bearish)" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126Z" /></svg>
+              </div>
+              <h3 className="font-bold text-[var(--text-primary)] text-base mb-2">Hapus Rekap Harian</h3>
+              <p className="text-sm text-[var(--text-secondary)] mb-6">Yakin ingin menghapus semua data absensi untuk <span className="font-semibold text-[var(--text-primary)]">{fmtDate}</span>? Tindakan ini tidak bisa dibatalkan.</p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={() => setDeleteConfirm({ show: false, loading: false })} className="btn btn-secondary px-5 py-2 text-sm">Batal</button>
+                <button onClick={async () => {
+                  setDeleteConfirm(p => ({ ...p, loading: true }));
+                  try {
+                    const res = await fetch(`/api/admin/attendance/delete?tanggal=${hTanggal}&kelas=${hKelas}`, { method: 'DELETE' });
+                    if (res.ok) {
+                      setHStudents([]);
+                      setHFetched(false);
+                      setHTanggal(null);
+                      setFilledDates(prev => prev.filter(d => d !== hTanggal));
+                    }
+                  } catch { /* ignore */ }
+                  setDeleteConfirm({ show: false, loading: false });
+                }} disabled={deleteConfirm.loading} className="px-5 py-2 text-sm font-bold rounded-[var(--radius-pill)] bg-[var(--bearish)] text-white hover:opacity-90 transition-all disabled:opacity-40">
+                  {deleteConfirm.loading ? 'Menghapus...' : 'Hapus'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
