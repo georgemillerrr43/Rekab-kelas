@@ -1,153 +1,93 @@
 {
-  "timestamp": "2026-07-21T10:04:49.169Z",
+  "timestamp": "2026-07-22T12:05:34.942Z",
   "mode": "headless",
   "workerType": "optimize",
   "model": "sonnet",
-  "durationMs": 148779,
-  "executionId": "optimize_1784628140390_4f8wd1",
+  "durationMs": 134127,
+  "executionId": "optimize_1784721800815_h0l8fd",
   "success": true,
   "findings": {
     "sections": [
       {
-        "title": "Performance Analysis Report",
-        "content": "\n",
+        "title": "1. 🔴 N+1 Query: POST Attendance (`admin/attendance` & `teacher/attendance`)",
+        "content": "\n**Masalah:** Loop di POST handler memanggil `prisma.siswa.findUnique` dan `prisma.kehadiran.findUnique` *per siswa* (1+N query per request batch). 40 siswa = 40+ query.\n\n```\nfor (const item of data) {           // loop over N students\n  const student = await prisma.siswa.findUnique(...)       // ← N query\n  const existingKhd = await prisma.kehadiran.findUnique(...) // ← N query\n  ...\n}\n```\n\n**Fix:** Batch lookup semua siswa sekali + prefetch semua kehadiran untuk tanggal tersebut:\n\n```ts\n// src/app/api/admin/attendance/route.ts — POST handler, replace the for-loop prep\nconst siswaIds = data.map(item => item.siswaId);\nconst siswaMap = new Map(\n  (await prisma.siswa.findMany({ where: { id: { in: siswaIds } } }))\n    .map(s => [s.id, s])\n);\nconst allExistingKhd = await prisma.kehadiran.findMany({\n  where: { siswaId: { in: siswaIds }, tanggal: targetDate },\n});\nconst khdMap = new Map(allExistingKhd.map(k => [k.siswaId, k]));\n\nfor (const item of data) {\n  const student = siswaMap.get(item.siswaId);\n  if (!student) continue;\n  \n  const existingKhd = khdMap.get(item.siswaId);\n  // ... rest of the logic unchanged\n}\n```\n\n**Dampak:** N+1 → 3 query per batch apapun ukurannya. Juga berlaku untuk `teacher/attendance` POST.\n\n---\n\n",
         "level": 2
       },
       {
-        "title": "1. 🐌 N+1 Query Patterns",
-        "content": "\n",
-        "level": 3
+        "title": "2. 🔴 useEffect Race Condition: Semua Form Absensi",
+        "content": "\n**Masalah:** `useEffect` dengan async IIFE di `TeacherAttendanceForm.tsx:19-31` dan `AttendanceForm.tsx:39-54` tidak punya `AbortController`. Cepat mengganti tanggal → respon sebelumnya bisa menimpa data terbaru.\n\n**Fix — AbortController + ignore flag:**\n\n```tsx\n// src/app/teacher/attendance/TeacherAttendanceForm.tsx\nuseEffect(() => {\n  const controller = new AbortController();\n  let cancelled = false;\n\n  (async () => {\n    setIsLoading(true);\n    try {\n      const res = await fetch(`/api/teacher/attendance?tanggal=${tanggal}`, {\n        signal: controller.signal,\n      });\n      if (cancelled || res.status === 403) return;\n      const d = await res.json();\n      if (cancelled) return;\n      setStudents((d.students || []).map(...));\n      setIsSuccess(!!d.alreadySubmitted);\n    } catch { /* ignore */ }\n    finally { if (!cancelled) setIsLoading(false); }\n  })();\n\n  return () => { cancelled = true; controller.abort(); };\n}, [tanggal]);\n```\n\n---\n\n",
+        "level": 2
       },
       {
-        "title": "Critical: Per-Class Stats in `src/app/api/admin/stats/route.ts:64-73`",
-        "content": "\nFor every class, a separate `siswa.findMany` query runs:\n\n```typescript\nconst kelasList = await prisma.kelas.findMany(...);  // 1 query\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({   // ← N queries, one per class\n      where: { kelasId: k.id }, select: { id: true }\n    })).map(s => s.id);\n    const khd = monthlyKehadiran.filter(h => ids.includes(h.siswaId));\n    // ...\n  })\n);\n```\n\n**Fix**: Use `groupBy` in a single query, or batch all student IDs by kelasId with one query + `Map`:\n\n```typescript\nconst allStudents = await prisma.siswa.findMany({\n  select: { id: true, kelasId: true }\n});\nconst studentMap = new Map<string, string[]>();\nfor (const s of allStudents) {\n  const arr = studentMap.get(s.kelasId) ?? [];\n  arr.push(s.id);\n  studentMap.set(s.kelasId, arr);\n}\n// Now use studentMap.get(k.id) — zero extra DB queries\n```\n\n---\n\n",
-        "level": 4
+        "title": "3. 🔴 N+1 Query: Stats API — Per-Class Attendance",
+        "content": "\n**Masalah:** Di `stats/route.ts`, tiap kelas menjalankan query siswa ID terpisah padahal `monthlyKehadiran` sudah di-load:\n\n```ts\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({     // ← N query\n      where: { kelasId: k.id }, select: { id: true }\n    })).map(s => s.id);\n    ...\n  })\n);\n```\n\n**Fix:** Pre-load semua siswa per kelas dalam 1 query, lalu filter in-memory:\n\n```ts\n// Pre-load once\nconst allSiswa = await prisma.siswa.findMany({\n  select: { id: true, kelasId: true },\n});\nconst siswaByKelas = new Map<string, string[]>();\nfor (const s of allSiswa) {\n  if (!siswaByKelas.has(s.kelasId)) siswaByKelas.set(s.kelasId, []);\n  siswaByKelas.get(s.kelasId)!.push(s.id);\n}\n\nconst perKelas = kelasList.map((k) => {\n  const ids = siswaByKelas.get(k.id) || [];\n  const khd = monthlyKehadiran.filter(h => ids.includes(h.siswaId));\n  // ...\n});\n```\n\n---\n\n",
+        "level": 2
       },
       {
-        "title": "2. 🔄 Redundant Computations",
-        "content": "\n",
-        "level": 3
+        "title": "4. 🟡 Redundant Sort on Every Render",
+        "content": "\n**Masalah:** `TeacherAttendanceForm.tsx` dan `AttendanceForm.tsx` melakukan `[...students].sort(...)` dua kali per render — sekali untuk tabel desktop, sekali untuk kartu mobile. Sort ini O(n log n) dan jalan tiap render.\n\n**Fix — `useMemo`:**\n\n```tsx\nconst sortedStudents = useMemo(() =>\n  [...students].sort((a, b) => sortMode === 'abjad'\n    ? a.nama.localeCompare(b.nama, 'id')\n    : (parseInt(a.nis)||0) - (parseInt(b.nis)||0)\n  ),\n  [students, sortMode]\n);\n```\n\nLalu pakai `sortedStudents` di JSX (baik tablet maupun mobile). Selesai, 2 tempat jadi 1.\n\n---\n\n",
+        "level": 2
       },
       {
-        "title": "5× Array Filter in `src/app/api/admin/stats/route.ts:45-49`",
-        "content": "\n```typescript\n// 5 full-array iterations for what one pass does\nconst totalHadir = monthlyKehadiran.filter(k => k.status === 'HADIR').length;\nconst totalIzin  = monthlyKehadiran.filter(k => k.status === 'IZIN').length;\nconst totalSakit = monthlyKehadiran.filter(k => k.status === 'SAKIT').length;\nconst totalPkl   = monthlyKehadiran.filter(k => k.status === 'PKL').length;\nconst totalAlpa  = monthlyKehadiran.filter(k => k.status === 'ALPA').length;\n```\n\n**Fix**: Single pass with `reduce`:\n\n```typescript\nconst counts = monthlyKehadiran.reduce((acc, k) => {\n  if (k.status === 'HADIR') acc.hadir++;\n  else if (k.status === 'IZIN') acc.izin++;\n  else if (k.status === 'SAKIT') acc.sakit++;\n  else if (k.status === 'PKL') acc.pkl++;\n  else if (k.status === 'ALPA') acc.alpa++;\n  return acc;\n}, { hadir: 0, izin: 0, sakit: 0, pkl: 0, alpa: 0 });\n```\n\n",
-        "level": 4
+        "title": "5. 🟡 Missing Cache: Stats API",
+        "content": "\n**Masalah:** `/api/admin/stats` di-query tiap kali admin buka dashboard. Monthly attendance di-rekalkulasi dari DB setiap request. Bisa pakai `stale-while-revalidate`.\n\n**Fix — simple in-memory cache (no extra deps):**\n\n```ts\n// src/app/api/admin/stats/route.ts — tambah di luar handler\nconst cache = new Map<string, { data: any; expiry: number }>();\nconst CACHE_TTL = 60_000; // 1 menit\n\nexport async function GET(request: NextRequest) {\n  const cacheKey = 'admin-stats';\n  const cached = cache.get(cacheKey);\n  if (cached && cached.expiry > Date.now()) {\n    return NextResponse.json(cached.data);\n  }\n  // ... existing logic ...\n  cache.set(cacheKey, { data: result, expiry: Date.now() + CACHE_TTL });\n  return NextResponse.json(result);\n}\n```\n\n---\n\n",
+        "level": 2
       },
       {
-        "title": "Double Sort in `AttendanceForm.tsx` Renders",
-        "content": "\nThe sort runs **twice** every render — once for desktop table, once for mobile cards:\n\n```tsx\n// Line 221 + 230 — identical sort, two new arrays\n{[...students].sort((a, b) => ...).map(s => <tr>...</tr>)}\n{[...students].sort((a, b) => ...).map(s => <div>...</div>)}\n```\n\n**Fix**: Memoize:\n\n```typescript\nconst sortedStudents = useMemo(() =>\n  [...students].sort((a, b) => sortMode === 'abjad'\n    ? a.nama.localeCompare(b.nama, 'id')\n    : (parseInt(a.nis)||0) - (parseInt(b.nis)||0)),\n  [students, sortMode]\n);\n```\n\n---\n\n",
-        "level": 4
+        "title": "6. 🟡 Date Parsing Duplication (Teacher POST)",
+        "content": "\n**Masalah:** Di `teacher/attendance/route.ts` POST, `new Date(tanggal)` dipanggil berulang di dalam loop.\n\n**Fix:** Panggil sekali di atas loop:\n```ts\nconst targetDate = new Date(tanggal); // ← sudah ada di admin POST, tapi teacher POST lompat\n```\nGanti semua `new Date(tanggal)` di loop → `targetDate`.\n\n---\n\n",
+        "level": 2
       },
       {
-        "title": "3. 💾 Caching Opportunities",
-        "content": "\n",
-        "level": 3
+        "title": "7. 🟢 Image Data URL di State",
+        "content": "\n**Masalah:** `FileReader.readAsDataURL` menghasilkan base64 ~3 MB per foto yang disimpan di state (`buktiPreview`). Tidak ada mekanisme cleanup.\n\n**Prioritas rendah** — beri komentar `ponytail:`:\n```\n// ponytail: base64 preview in state, release with URL.revokeObjectURL if memory pressure appears\n```\n\n---\n\n",
+        "level": 2
       },
       {
-        "title": "All 22 API Routes Use `force-dynamic`",
-        "content": "\nEvery route handler disables caching. No data is ever reused. Specific candidates:\n\n| Route | Cache Strategy | Rationale |\n|-------|---------------|-----------|\n| `/api/admin/stats` | SWR 60s | Monthly aggregates don't need sub-minute freshness |\n| `/api/admin/classes` | SWR 300s | Classes change only when admin adds/edits one |\n| `/api/recap/daily` | SWR 30s | Same date queried by multiple teachers |\n| `/api/recap/*` (historical) | SWR 120s | Past dates never change |\n\n**Example for stats:**\n\n```typescript\n// ponytail: SWR via Next.js segment config, freshness ≥60s for aggregate data\nexport const revalidate = 60;\n// Remove: export const dynamic = 'force-dynamic';\n```\n\n",
-        "level": 4
-      },
-      {
-        "title": "Redundant Session Fetch in `Header.tsx:27`",
-        "content": "\n```typescript\nuseEffect(() => { fetchSession(); }, [pathname]);\n```\n\nOn every page navigation, the header re-fetches `/api/auth/session` — a roundtrip just to re-read what the cookie already says. The session cookie is `session_token` and the client already had it.\n\n**Fix**: Call `fetchSession()` once on mount, not on every pathname change:\n\n```typescript\nuseEffect(() => { fetchSession(); }, []);  // only on mount\n```\n\nOr better, store `{nama, role}` in a non-httpOnly cookie alongside the session token so the client reads it instantly.\n\n---\n\n",
-        "level": 4
-      },
-      {
-        "title": "4. ⚡ React Re-render Issues",
-        "content": "\n",
-        "level": 3
-      },
-      {
-        "title": "Unnecessary Sequential API Calls in `src/app/page.tsx:24-35`",
-        "content": "\n```typescript\nconst fetchData = async () => {\n  const statsRes = await fetch('/api/admin/stats');   // wait...\n  const statsData = await statsRes.json();\n  setStats(statsData);\n  const appRes = await fetch('/api/admin/approval');  // ...then this\n  // ...\n};\n```\n\nThese two endpoints are independent. Sequential waiting adds ~2× latency to page load.\n\n**Fix**: Parallel with `Promise.all`:\n\n```typescript\nconst [statsRes, appRes] = await Promise.all([\n  fetch('/api/admin/stats'),\n  fetch('/api/admin/approval'),\n]);\n```\n\n",
-        "level": 4
-      },
-      {
-        "title": "Button Definitions Re-created Every Render in `AttendanceForm.tsx`",
-        "content": "\n`btnRow()` and `btnRowMobile()` define 5 button config objects inside the function body on every render, then map over them. These arrays are static — they never change.\n\n**Fix**: Hoist the button config arrays outside the component (or use `useMemo`) so they're created once.\n\n---\n\n",
-        "level": 4
-      },
-      {
-        "title": "5. 🧠 Memory Leaks & Unbounded Growth",
-        "content": "\n",
-        "level": 3
-      },
-      {
-        "title": "Growing Login Rate-Limiter Map in `src/app/api/auth/login/route.ts:7`",
-        "content": "\n```typescript\nconst loginAttempts = new Map<string, { count: number; resetTime: number }>();\n```\n\nEach unique IP adds an entry that lives for up to 15 minutes. **No cleanup mechanism.** With 1000 unique IPs/hour, the Map holds 1000 entries permanently (each expires after 15 min but is never deleted).\n\n**Fix**: Add periodic cleanup or use a `Map` with a max-size eviction:\n\n```typescript\n// Simple TTL sweep — run every 5 minutes\nconst CLEANUP_INTERVAL = 5 * 60 * 1000;\nif (loginAttempts.size > 1000) {\n  const now = Date.now();\n  for (const [ip, entry] of loginAttempts) {\n    if (now > entry.resetTime) loginAttempts.delete(ip);\n  }\n}\n```\n\n",
-        "level": 4
-      },
-      {
-        "title": "FileReader Data URLs Held in State",
-        "content": "\n`AttendanceForm.tsx:66` reads uploaded images as base64 data URLs and stores them in component state (`buktiPreview`). With a full class of ~30 students each uploading a 1-2MB photo, the component holds **~45-60MB of base64 strings** in memory until the user navigates away.\n\n**Fix**: Use `URL.createObjectURL()` instead (blob URLs that don't encode to base64), and revoke when done:\n\n```typescript\nconst previewUrl = URL.createObjectURL(file);\n// store previewUrl in state\n// ... cleanup on unmount or when preview replaced:\nuseEffect(() => {\n  return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };\n}, [previewUrl]);\n```\n\n---\n\n",
-        "level": 4
-      },
-      {
-        "title": "6. 📊 Quick Wins Summary",
-        "content": "| Priority | Issue | File | Effort |\n|----------|-------|------|--------|\n| 🔴 | N+1 per-class student query | `stats/route.ts:68` | 15min |\n| 🔴 | 5× filter → single reduce | `stats/route.ts:45-49` | 5min |\n| 🟡 | Parallel fetch data & approval | `page.tsx:24` | 2min |\n| 🟡 | Memoize sorted students | `AttendanceForm.tsx` | 5min |\n| 🟡 | Cache historical routes (SWR) | Multiple route.ts | 10min |\n| 🟡 | `fetchSession` on pathname change | `Header.tsx:27` | 2min |\n| 🟢 | Base64 preview → objectURL | `AttendanceForm.tsx:66` | 10min |\n| 🟢 | Rate-limiter periodic cleanup | `login/route.ts` | 5min |",
-        "level": 3
+        "title": "Summary",
+        "content": "| # | Issue | Lokasi | Severity |\n|---|-------|--------|----------|\n| 1 | N+1 query di POST attendance | `admin/attendance`, `teacher/attendance` | 🔴 High |\n| 2 | Fetch race condition | `TeacherAttendanceForm`, `AttendanceForm` | 🔴 High |\n| 3 | N+1 per kelas di stats | `admin/stats/route.ts` | 🔴 High |\n| 4 | Sort double-execution | `TeacherAttendanceForm`, `AttendanceForm` | 🟡 Med |\n| 5 | Stats uncached | `admin/stats/route.ts` | 🟡 Med |\n| 6 | Repeated `new Date()` | `teacher/attendance/route.ts` | 🟢 Low |\n| 7 | Base64 preview in state | `TeacherAttendanceForm`, `AttendanceForm` | 🟢 Low |\n\nMau saya terapkan fix nomor 1, 2, dan 4 langsung? Itu tiga yang dampaknya paling besar — N+1 query, race condition, dan sort duplication.",
+        "level": 2
       }
     ],
     "codeBlocks": [
       {
-        "language": "typescript",
-        "code": "const kelasList = await prisma.kelas.findMany(...);  // 1 query\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({   // ← N queries, one per class\n      where: { kelasId: k.id }, select: { id: true }\n    })).map(s => s.id);\n    const khd = monthlyKehadiran.filter(h => ids.includes(h.siswaId));\n    // ...\n  })\n);"
+        "language": "text",
+        "code": "for (const item of data) {           // loop over N students\n  const student = await prisma.siswa.findUnique(...)       // ← N query\n  const existingKhd = await prisma.kehadiran.findUnique(...) // ← N query\n  ...\n}"
       },
       {
-        "language": "typescript",
-        "code": "const allStudents = await prisma.siswa.findMany({\n  select: { id: true, kelasId: true }\n});\nconst studentMap = new Map<string, string[]>();\nfor (const s of allStudents) {\n  const arr = studentMap.get(s.kelasId) ?? [];\n  arr.push(s.id);\n  studentMap.set(s.kelasId, arr);\n}\n// Now use studentMap.get(k.id) — zero extra DB queries"
-      },
-      {
-        "language": "typescript",
-        "code": "// 5 full-array iterations for what one pass does\nconst totalHadir = monthlyKehadiran.filter(k => k.status === 'HADIR').length;\nconst totalIzin  = monthlyKehadiran.filter(k => k.status === 'IZIN').length;\nconst totalSakit = monthlyKehadiran.filter(k => k.status === 'SAKIT').length;\nconst totalPkl   = monthlyKehadiran.filter(k => k.status === 'PKL').length;\nconst totalAlpa  = monthlyKehadiran.filter(k => k.status === 'ALPA').length;"
-      },
-      {
-        "language": "typescript",
-        "code": "const counts = monthlyKehadiran.reduce((acc, k) => {\n  if (k.status === 'HADIR') acc.hadir++;\n  else if (k.status === 'IZIN') acc.izin++;\n  else if (k.status === 'SAKIT') acc.sakit++;\n  else if (k.status === 'PKL') acc.pkl++;\n  else if (k.status === 'ALPA') acc.alpa++;\n  return acc;\n}, { hadir: 0, izin: 0, sakit: 0, pkl: 0, alpa: 0 });"
+        "language": "ts",
+        "code": "// src/app/api/admin/attendance/route.ts — POST handler, replace the for-loop prep\nconst siswaIds = data.map(item => item.siswaId);\nconst siswaMap = new Map(\n  (await prisma.siswa.findMany({ where: { id: { in: siswaIds } } }))\n    .map(s => [s.id, s])\n);\nconst allExistingKhd = await prisma.kehadiran.findMany({\n  where: { siswaId: { in: siswaIds }, tanggal: targetDate },\n});\nconst khdMap = new Map(allExistingKhd.map(k => [k.siswaId, k]));\n\nfor (const item of data) {\n  const student = siswaMap.get(item.siswaId);\n  if (!student) continue;\n  \n  const existingKhd = khdMap.get(item.siswaId);\n  // ... rest of the logic unchanged\n}"
       },
       {
         "language": "tsx",
-        "code": "// Line 221 + 230 — identical sort, two new arrays\n{[...students].sort((a, b) => ...).map(s => <tr>...</tr>)}\n{[...students].sort((a, b) => ...).map(s => <div>...</div>)}"
+        "code": "// src/app/teacher/attendance/TeacherAttendanceForm.tsx\nuseEffect(() => {\n  const controller = new AbortController();\n  let cancelled = false;\n\n  (async () => {\n    setIsLoading(true);\n    try {\n      const res = await fetch(`/api/teacher/attendance?tanggal=${tanggal}`, {\n        signal: controller.signal,\n      });\n      if (cancelled || res.status === 403) return;\n      const d = await res.json();\n      if (cancelled) return;\n      setStudents((d.students || []).map(...));\n      setIsSuccess(!!d.alreadySubmitted);\n    } catch { /* ignore */ }\n    finally { if (!cancelled) setIsLoading(false); }\n  })();\n\n  return () => { cancelled = true; controller.abort(); };\n}, [tanggal]);"
       },
       {
-        "language": "typescript",
-        "code": "const sortedStudents = useMemo(() =>\n  [...students].sort((a, b) => sortMode === 'abjad'\n    ? a.nama.localeCompare(b.nama, 'id')\n    : (parseInt(a.nis)||0) - (parseInt(b.nis)||0)),\n  [students, sortMode]\n);"
+        "language": "ts",
+        "code": "const perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({     // ← N query\n      where: { kelasId: k.id }, select: { id: true }\n    })).map(s => s.id);\n    ...\n  })\n);"
       },
       {
-        "language": "typescript",
-        "code": "// ponytail: SWR via Next.js segment config, freshness ≥60s for aggregate data\nexport const revalidate = 60;\n// Remove: export const dynamic = 'force-dynamic';"
+        "language": "ts",
+        "code": "// Pre-load once\nconst allSiswa = await prisma.siswa.findMany({\n  select: { id: true, kelasId: true },\n});\nconst siswaByKelas = new Map<string, string[]>();\nfor (const s of allSiswa) {\n  if (!siswaByKelas.has(s.kelasId)) siswaByKelas.set(s.kelasId, []);\n  siswaByKelas.get(s.kelasId)!.push(s.id);\n}\n\nconst perKelas = kelasList.map((k) => {\n  const ids = siswaByKelas.get(k.id) || [];\n  const khd = monthlyKehadiran.filter(h => ids.includes(h.siswaId));\n  // ...\n});"
       },
       {
-        "language": "typescript",
-        "code": "useEffect(() => { fetchSession(); }, [pathname]);"
+        "language": "tsx",
+        "code": "const sortedStudents = useMemo(() =>\n  [...students].sort((a, b) => sortMode === 'abjad'\n    ? a.nama.localeCompare(b.nama, 'id')\n    : (parseInt(a.nis)||0) - (parseInt(b.nis)||0)\n  ),\n  [students, sortMode]\n);"
       },
       {
-        "language": "typescript",
-        "code": "useEffect(() => { fetchSession(); }, []);  // only on mount"
+        "language": "ts",
+        "code": "// src/app/api/admin/stats/route.ts — tambah di luar handler\nconst cache = new Map<string, { data: any; expiry: number }>();\nconst CACHE_TTL = 60_000; // 1 menit\n\nexport async function GET(request: NextRequest) {\n  const cacheKey = 'admin-stats';\n  const cached = cache.get(cacheKey);\n  if (cached && cached.expiry > Date.now()) {\n    return NextResponse.json(cached.data);\n  }\n  // ... existing logic ...\n  cache.set(cacheKey, { data: result, expiry: Date.now() + CACHE_TTL });\n  return NextResponse.json(result);\n}"
       },
       {
-        "language": "typescript",
-        "code": "const fetchData = async () => {\n  const statsRes = await fetch('/api/admin/stats');   // wait...\n  const statsData = await statsRes.json();\n  setStats(statsData);\n  const appRes = await fetch('/api/admin/approval');  // ...then this\n  // ...\n};"
+        "language": "ts",
+        "code": "const targetDate = new Date(tanggal); // ← sudah ada di admin POST, tapi teacher POST lompat"
       },
       {
-        "language": "typescript",
-        "code": "const [statsRes, appRes] = await Promise.all([\n  fetch('/api/admin/stats'),\n  fetch('/api/admin/approval'),\n]);"
-      },
-      {
-        "language": "typescript",
-        "code": "const loginAttempts = new Map<string, { count: number; resetTime: number }>();"
-      },
-      {
-        "language": "typescript",
-        "code": "// Simple TTL sweep — run every 5 minutes\nconst CLEANUP_INTERVAL = 5 * 60 * 1000;\nif (loginAttempts.size > 1000) {\n  const now = Date.now();\n  for (const [ip, entry] of loginAttempts) {\n    if (now > entry.resetTime) loginAttempts.delete(ip);\n  }\n}"
-      },
-      {
-        "language": "typescript",
-        "code": "const previewUrl = URL.createObjectURL(file);\n// store previewUrl in state\n// ... cleanup on unmount or when preview replaced:\nuseEffect(() => {\n  return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };\n}, [previewUrl]);"
+        "language": "text",
+        "code": "// ponytail: base64 preview in state, release with URL.revokeObjectURL if memory pressure appears"
       }
     ]
   },
-  "rawOutputPreview": "## Performance Analysis Report\n\n### 1. 🐌 N+1 Query Patterns\n\n#### Critical: Per-Class Stats in `src/app/api/admin/stats/route.ts:64-73`\n\nFor every class, a separate `siswa.findMany` query runs:\n\n```typescript\nconst kelasList = await prisma.kelas.findMany(...);  // 1 query\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({   // ← N queries, one per class\n      where: { kelasId: k.id }, select: { id: true }\n    })).map(s => s.id);\n    const khd = monthlyKehadiran.filter(h => ids.includes(h.siswaId));\n    // ...\n  })\n);\n```\n\n**Fix**: Use `groupBy` in a single query, or batch all student IDs by kelasId with one query + `Map`:\n\n```typescript\nconst allStudents = await prisma.siswa.findMany({\n  select: { id: true, kelasId: true }\n});\nconst studentMap = new Map<string, string[]>();\nfor (const s of allStudents) {\n  const arr = studentMap.get(s.kelasId) ?? [];\n  arr.push(s.id);\n  studentMap.set(s.kelasId, arr);\n}\n// Now use studentMap.get(k.id) — zero extra DB queries\n```\n\n---\n\n### 2. 🔄 Redundant Computations\n\n#### 5× Array Filter in `src/app/api/admin/stats/route.ts:45-49`\n\n```typescript\n// 5 full-array iterations for what one pass does\nconst totalHadir = monthlyKehadiran.filter(k => k.status === 'HADIR').length;\nconst totalIzin  = monthlyKehadiran.filter(k => k.status === 'IZIN').length;\nconst totalSakit = monthlyKehadiran.filter(k => k.status === 'SAKIT').length;\nconst totalPkl   = monthlyKehadiran.filter(k => k.status === 'PKL').length;\nconst totalAlpa  = monthlyKehadiran.filter(k => k.status === 'ALPA').length;\n```\n\n**Fix**: Single pass with `reduce`:\n\n```typescript\nconst counts = monthlyKehadiran.reduce((acc, k) => {\n  if (k.status === 'HADIR') acc.hadir++;\n  else if (k.status === 'IZIN') acc.izin++;\n  else if (k.status === 'SAKIT') acc.sakit++;\n  else if (k.status === 'PKL') acc.pkl++;\n  else if (k.status === 'ALPA') acc.alpa++;\n  return acc;\n}, { hadir: 0, izin: 0, sakit: 0, pkl: 0, alpa: 0 });\n```\n\n####",
-  "rawOutputLength": 6975
+  "rawOutputPreview": "Berikut analisis **performa** dan rekomendasi kode — prioritas dari yang paling berdampak.\n\n---\n\n## 1. 🔴 N+1 Query: POST Attendance (`admin/attendance` & `teacher/attendance`)\n\n**Masalah:** Loop di POST handler memanggil `prisma.siswa.findUnique` dan `prisma.kehadiran.findUnique` *per siswa* (1+N query per request batch). 40 siswa = 40+ query.\n\n```\nfor (const item of data) {           // loop over N students\n  const student = await prisma.siswa.findUnique(...)       // ← N query\n  const existingKhd = await prisma.kehadiran.findUnique(...) // ← N query\n  ...\n}\n```\n\n**Fix:** Batch lookup semua siswa sekali + prefetch semua kehadiran untuk tanggal tersebut:\n\n```ts\n// src/app/api/admin/attendance/route.ts — POST handler, replace the for-loop prep\nconst siswaIds = data.map(item => item.siswaId);\nconst siswaMap = new Map(\n  (await prisma.siswa.findMany({ where: { id: { in: siswaIds } } }))\n    .map(s => [s.id, s])\n);\nconst allExistingKhd = await prisma.kehadiran.findMany({\n  where: { siswaId: { in: siswaIds }, tanggal: targetDate },\n});\nconst khdMap = new Map(allExistingKhd.map(k => [k.siswaId, k]));\n\nfor (const item of data) {\n  const student = siswaMap.get(item.siswaId);\n  if (!student) continue;\n  \n  const existingKhd = khdMap.get(item.siswaId);\n  // ... rest of the logic unchanged\n}\n```\n\n**Dampak:** N+1 → 3 query per batch apapun ukurannya. Juga berlaku untuk `teacher/attendance` POST.\n\n---\n\n## 2. 🔴 useEffect Race Condition: Semua Form Absensi\n\n**Masalah:** `useEffect` dengan async IIFE di `TeacherAttendanceForm.tsx:19-31` dan `AttendanceForm.tsx:39-54` tidak punya `AbortController`. Cepat mengganti tanggal → respon sebelumnya bisa menimpa data terbaru.\n\n**Fix — AbortController + ignore flag:**\n\n```tsx\n// src/app/teacher/attendance/TeacherAttendanceForm.tsx\nuseEffect(() => {\n  const controller = new AbortController();\n  let cancelled = false;\n\n  (async () => {\n    setIsLoading(true);\n    try {\n      const res = await fetch(`/api/teacher/attendance?tanggal=${tanggal}",
+  "rawOutputLength": 6251
 }

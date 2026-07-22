@@ -3,73 +3,73 @@
   "startedAt": "2026-07-22T11:24:54.396Z",
   "workers": {
     "map": {
-      "runCount": 41,
-      "successCount": 41,
+      "runCount": 44,
+      "successCount": 44,
       "failureCount": 0,
-      "averageDurationMs": 15.536585365853655,
-      "lastRun": "2026-07-22T11:24:54.418Z",
-      "lastStartedAt": "2026-07-22T11:24:54.411Z",
-      "nextRun": "2026-07-22T11:24:54.398Z",
+      "averageDurationMs": 15.02272727272727,
+      "lastRun": "2026-07-22T12:09:54.470Z",
+      "lastStartedAt": "2026-07-22T12:09:54.463Z",
+      "nextRun": "2026-07-22T12:09:54.460Z",
       "isRunning": false
     },
     "audit": {
-      "runCount": 58,
-      "successCount": 58,
+      "runCount": 63,
+      "successCount": 63,
       "failureCount": 0,
-      "averageDurationMs": 17474.672413793105,
-      "lastRun": "2026-07-21T10:19:33.948Z",
-      "lastStartedAt": "2026-07-21T10:14:33.624Z",
-      "nextRun": "2026-07-22T11:26:54.399Z",
+      "averageDurationMs": 16879.238095238095,
+      "lastRun": "2026-07-22T12:07:44.331Z",
+      "lastStartedAt": "2026-07-22T12:07:35.229Z",
+      "nextRun": "2026-07-22T12:17:44.335Z",
       "isRunning": false
     },
     "optimize": {
-      "runCount": 36,
-      "successCount": 36,
+      "runCount": 39,
+      "successCount": 39,
       "failureCount": 2,
-      "averageDurationMs": 52131.61111111111,
-      "lastRun": "2026-07-21T10:04:49.174Z",
-      "lastStartedAt": "2026-07-21T10:19:49.240Z",
-      "nextRun": "2026-07-22T11:28:54.400Z",
+      "averageDurationMs": 58390.743589743586,
+      "lastRun": "2026-07-22T12:05:34.947Z",
+      "lastStartedAt": "2026-07-22T12:03:20.809Z",
+      "nextRun": "2026-07-22T12:20:34.952Z",
       "isRunning": false
     },
     "consolidate": {
-      "runCount": 20,
-      "successCount": 20,
+      "runCount": 22,
+      "successCount": 22,
       "failureCount": 0,
-      "averageDurationMs": 11.95,
-      "lastRun": "2026-07-21T10:16:32.362Z",
-      "lastStartedAt": "2026-07-21T10:16:32.351Z",
-      "nextRun": "2026-07-22T11:30:54.401Z",
+      "averageDurationMs": 11.727272727272727,
+      "lastRun": "2026-07-22T12:00:54.440Z",
+      "lastStartedAt": "2026-07-22T12:00:54.432Z",
+      "nextRun": "2026-07-22T12:30:54.444Z",
       "isRunning": false
     },
     "testgaps": {
-      "runCount": 27,
-      "successCount": 27,
+      "runCount": 29,
+      "successCount": 29,
       "failureCount": 1,
-      "averageDurationMs": 64729.62962962963,
-      "lastRun": "2026-07-21T10:08:33.424Z",
-      "lastStartedAt": "2026-07-21T10:04:53.915Z",
-      "nextRun": "2026-07-22T11:32:54.401Z",
+      "averageDurationMs": 71633.55172413793,
+      "lastRun": "2026-07-22T11:58:24.095Z",
+      "lastStartedAt": "2026-07-22T11:56:38.084Z",
+      "nextRun": "2026-07-22T12:18:24.099Z",
       "isRunning": false
     },
     "backup": {
-      "runCount": 2,
-      "successCount": 2,
-      "failureCount": 0,
-      "averageDurationMs": 6,
-      "lastRun": "2026-07-21T07:50:32.191Z",
-      "lastStartedAt": "2026-07-21T07:50:32.183Z",
-      "nextRun": "2026-07-22T11:34:54.402Z",
-      "isRunning": false
-    },
-    "harness": {
       "runCount": 3,
       "successCount": 3,
       "failureCount": 0,
-      "averageDurationMs": 37,
-      "lastRun": "2026-07-21T07:52:32.217Z",
-      "lastStartedAt": "2026-07-21T07:52:32.180Z",
-      "nextRun": "2026-07-22T11:36:54.403Z",
+      "averageDurationMs": 12,
+      "lastRun": "2026-07-22T11:34:54.427Z",
+      "lastStartedAt": "2026-07-22T11:34:54.403Z",
+      "nextRun": "2026-07-23T11:34:54.445Z",
+      "isRunning": false
+    },
+    "harness": {
+      "runCount": 4,
+      "successCount": 4,
+      "failureCount": 0,
+      "averageDurationMs": 39.75,
+      "lastRun": "2026-07-22T11:36:54.460Z",
+      "lastStartedAt": "2026-07-22T11:36:54.412Z",
+      "nextRun": "2026-07-22T17:36:54.468Z",
       "isRunning": false
     },
     "predict": {
@@ -174,5 +174,5 @@
       }
     ]
   },
-  "savedAt": "2026-07-22T11:24:54.419Z"
+  "savedAt": "2026-07-22T12:09:54.470Z"
 }
