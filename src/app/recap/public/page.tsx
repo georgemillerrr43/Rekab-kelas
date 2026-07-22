@@ -91,6 +91,7 @@ export default function PublicRekapPage() {
   const [hFetched, setHFetched] = useState(false);
   const [filledDates, setFilledDates] = useState<string[]>([]);
   const [sortMode, setSortMode] = useState<'nis' | 'abjad'>('nis');
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   // Fetch kelas list
   useEffect(() => {
@@ -363,7 +364,18 @@ export default function PublicRekapPage() {
                                 s.status === 'ALPA' ? 'text-[var(--bearish)]' :
                                 'text-[var(--text-muted)]'
                               }`}>{s.status === 'BELUM' ? '-' : s.status}</span></td>
-                          <td><span>{s.alasan || <span className="opacity-30">-</span>}</span></td>
+                          <td>
+                            <div className="flex items-center gap-2">
+                              <span>{s.alasan || <span className="opacity-30">-</span>}</span>
+                              {(s.status === 'IZIN' || s.status === 'SAKIT') && s.buktiUrl && (
+                                <button onClick={() => setSelectedPhoto(s.buktiUrl.startsWith('/uploads') ? s.buktiUrl.replace('/uploads', '/api/uploads') : s.buktiUrl)}
+                                  className="px-2 py-1 text-[10px] font-bold text-[var(--text-accent)] bg-[rgba(59,130,246,0.1)] hover:bg-[rgba(59,130,246,0.15)] rounded-lg border border-[rgba(59,130,246,0.2)] transition-all ml-auto shrink-0">
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 inline mr-1 -mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375 3.375 0 1 1-.75 0 .375 3.375 0 0 1 .75 0Z" /></svg>
+                                  Foto
+                                </button>
+                              )}
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -377,6 +389,17 @@ export default function PublicRekapPage() {
         <div className="glass-card p-8 text-center text-[var(--text-muted)] font-semibold">Pilih tanggal untuk melihat rekap harian.</div>
       )}
       </>
+      )}
+
+      {selectedPhoto && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative glass rounded-3xl overflow-hidden max-w-2xl w-full shadow-2xl">
+            <button onClick={() => setSelectedPhoto(null)} className="absolute right-4 top-4 p-2 bg-black/60 text-white hover:bg-black/80 rounded-full transition-colors z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div className="p-1"><img src={selectedPhoto} alt="Bukti" className="w-full h-auto max-h-[80vh] object-contain rounded-2xl" /></div>
+          </div>
+        </div>
       )}
 
     </div>

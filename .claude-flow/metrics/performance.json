@@ -1,202 +1,138 @@
 {
-  "timestamp": "2026-07-21T09:30:43.876Z",
+  "timestamp": "2026-07-21T10:04:49.169Z",
   "mode": "headless",
   "workerType": "optimize",
   "model": "sonnet",
-  "durationMs": 141337,
-  "executionId": "optimize_1784626102539_cwgaav",
+  "durationMs": 148779,
+  "executionId": "optimize_1784628140390_4f8wd1",
   "success": true,
   "findings": {
     "sections": [
       {
-        "title": "Performa Analysis — Rekab Kelas",
-        "content": "\n",
-        "level": 1
-      },
-      {
-        "title": "1. N+1 Query Patterns",
+        "title": "Performance Analysis Report",
         "content": "\n",
         "level": 2
       },
       {
-        "title": "🔴 Admin Stats — `perKelas` loop",
-        "content": "**File:** `src/app/api/admin/stats/route.ts`\n\n```typescript\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({ where: { kelasId: k.id }, select: { id: true } }))\n      .map(s => s.id);\n    // filters monthlyKehadiran (already fetched) in-memory per class...\n  })\n);\n```\n\n**Problem:** For each class, it runs a **separate query** (`prisma.siswa.findMany`) to get student IDs, then does the aggregation in-memory. N queries for N classes.\n\n**Fix — group by kelasId at DB level:**\n```typescript\n// Single aggregation query instead of N+1\nconst perKelas = await prisma.kelas.findMany({\n  select: {\n    nama: true,\n    _count: { select: { siswa: true } },\n    siswa: {\n      select: {\n        kehadiran: {\n          where: { tanggal: { gte: startOfMonth, lte: endOfMonth } },\n          select: { status: true }\n        }\n      }\n    }\n  }\n}).then(kl => kl.map(k => {\n  const hadir = k.siswa.flatMap(s => s.kehadiran).filter(kh => kh.status === 'HADIR').length;\n  const total = k.siswa.flatMap(s => s.kehadiran).length;\n  return { nama: k.nama.replace(/-/g, ' '), persen: total > 0 ? Number(((hadir/total)*100).toFixed(1)) : 0, siswa: k._count.siswa };\n}));\n```\nOr compute via raw SQL `GROUP BY kelasId` for larger datasets.\n\n",
-        "level": 3
-      },
-      {
-        "title": "🔴 Attendance POST — per-student in a loop",
-        "content": "**File:** `src/app/api/admin/attendance/route.ts` and `src/app/api/teacher/attendance/route.ts`\n\n```typescript\nfor (const item of data) {\n  const student = await prisma.siswa.findUnique({ where: { id: siswaId } });  // query per student\n  const existingKhd = await prisma.kehadiran.findUnique({ ... });              // query per student\n  // ...\n}\n```\n\n**Problem:** If submitting attendance for 30 students, that's **60+ sequential queries**.\n\n**Fix — batch with `findMany` upfront:**\n```typescript\nconst ids = data.map(i => i.siswaId);\nconst [students, existingKehadiran] = await Promise.all([\n  prisma.siswa.findMany({ where: { id: { in: ids } } }),\n  prisma.kehadiran.findMany({ where: { siswaId: { in: ids }, tanggal: targetDate } }),\n]);\nconst studentMap = new Map(students.map(s => [s.id, s]));\nconst khdMap = new Map(existingKehadiran.map(k => [k.siswaId, k]));\n\nfor (const item of data) {\n  const student = studentMap.get(item.siswaId);\n  const existingKhd = khdMap.get(item.siswaId);\n  // ...\n}\n```\n\n---\n\n",
-        "level": 3
-      },
-      {
-        "title": "2. Client-Side Data Fetching (No Cache, No Cleanup)",
+        "title": "1. 🐌 N+1 Query Patterns",
         "content": "\n",
-        "level": 2
-      },
-      {
-        "title": "🔴 Raw `fetch` in `useEffect` everywhere",
-        "content": "**Files:** `src/app/page.tsx`, `src/app/recap/page.tsx`, `src/app/teacher/page.tsx`, `src/app/student/page.tsx`, `src/components/AttendanceForm.tsx`, `src/app/teacher/attendance/TeacherAttendanceForm.tsx`\n\nEvery page follows this pattern with **no dedup, no cache, no retry, no AbortController**:\n\n```typescript\nuseEffect(() => { fetchData(); }, []);\nuseEffect(() => {\n  if (tab !== 'bulanan' || !kelas) return;\n  (async () => {\n    setRekapList((await (await fetch(`/api/recap?kelas=${kelas}&bulan=${bulan}`)).json()).rekap || []);\n  })();\n}, [kelas, bulan, tab]);\n```\n\n**Problems:**\n1. **Race conditions** — no `AbortController`, so if `kelas` changes twice before the first fetch completes, both callbacks resolve and overwrite state in undefined order\n2. **No caching** — switching back and forth between tabs re-fetches the same data from scratch\n3. **Cascade fetching** — the recap page has 4 `useEffect` blocks, some dependent on state set by others, causing a waterfall of fetches + re-renders\n4. **Empty catch blocks** — `catch { /* empty */ }` / `catch { /* ignore */ }` silently swallow errors with no user feedback\n\n**Fix — wrap in a custom hook with cleanup:**\n\n```typescript\nfunction useFetch<T>(url: string | null): { data: T | null; loading: boolean; error: string | null } {\n  const [data, setData] = useState<T | null>(null);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    if (!url) return;\n    const controller = new AbortController();\n    setLoading(true);\n    fetch(url, { signal: controller.signal })\n      .then(r => r.json())\n      .then(d => { setData(d); setError(null); })\n      .catch(e => { if (e.name !== 'AbortError') setError(e.message); })\n      .finally(() => setLoading(false));\n    return () => controller.abort();\n  }, [url]);\n\n  return { data, loading, error };\n}\n```\n\nEven better — add a lightweight cache layer (SWR or a simple in-memory cache) so switching tabs doesn't refetch:\n\n```typescript\nconst cache = new Map<string, { data: any; ts: number }>();\nconst CACHE_TTL = 60_000;\n\nasync function fetchWithCache(url: string) {\n  const cached = cache.get(url);\n  if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;\n  const res = await fetch(url);\n  const data = await res.json();\n  cache.set(url, { data, ts: Date.now() });\n  return data;\n}\n```\n\n---\n\n",
         "level": 3
       },
       {
-        "title": "3. Redundant Computations",
+        "title": "Critical: Per-Class Stats in `src/app/api/admin/stats/route.ts:64-73`",
+        "content": "\nFor every class, a separate `siswa.findMany` query runs:\n\n```typescript\nconst kelasList = await prisma.kelas.findMany(...);  // 1 query\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({   // ← N queries, one per class\n      where: { kelasId: k.id }, select: { id: true }\n    })).map(s => s.id);\n    const khd = monthlyKehadiran.filter(h => ids.includes(h.siswaId));\n    // ...\n  })\n);\n```\n\n**Fix**: Use `groupBy` in a single query, or batch all student IDs by kelasId with one query + `Map`:\n\n```typescript\nconst allStudents = await prisma.siswa.findMany({\n  select: { id: true, kelasId: true }\n});\nconst studentMap = new Map<string, string[]>();\nfor (const s of allStudents) {\n  const arr = studentMap.get(s.kelasId) ?? [];\n  arr.push(s.id);\n  studentMap.set(s.kelasId, arr);\n}\n// Now use studentMap.get(k.id) — zero extra DB queries\n```\n\n---\n\n",
+        "level": 4
+      },
+      {
+        "title": "2. 🔄 Redundant Computations",
         "content": "\n",
-        "level": 2
-      },
-      {
-        "title": "🔴 Stats route — 5 separate `.filter()` calls on the same array",
-        "content": "**File:** `src/app/api/admin/stats/route.ts`\n\n```typescript\nconst totalHadir = monthlyKehadiran.filter((k) => k.status === 'HADIR').length;\nconst totalIzin = monthlyKehadiran.filter((k) => k.status === 'IZIN').length;\nconst totalSakit = monthlyKehadiran.filter((k) => k.status === 'SAKIT').length;\nconst totalPkl = monthlyKehadiran.filter((k) => k.status === 'PKL').length;\nconst totalAlpa = monthlyKehadiran.filter((k) => k.status === 'ALPA').length;\n```\n\n**Problem:** Iterates the array 5 times. For small arrays it's negligible, but it's a pattern that scales poorly.\n\n**Fix — single pass:**\n```typescript\nconst counts = { HADIR: 0, IZIN: 0, SAKIT: 0, PKL: 0, ALPA: 0 };\nmonthlyKehadiran.forEach(k => { counts[k.status]++; });\nconst { HADIR: totalHadir, IZIN: totalIzin, SAKIT: totalSakit, PKL: totalPkl, ALPA: totalAlpa } = counts;\n```\n\nSame pattern appears in **recap routes** — `students.filter` per status:\n```typescript\nconst hadir = result.filter((r) => r.status === 'HADIR').length;\nconst izin = result.filter((r) => r.status === 'IZIN').length;\n// ... etc\n```\n\n",
         "level": 3
       },
       {
-        "title": "🟡 Login route — 3 sequential `findUnique` calls",
-        "content": "**File:** `src/app/api/auth/login/route.ts`\n\n```typescript\nconst admin = await prisma.admin.findUnique({ where: { username } });\n// If not admin...\nconst guru = await prisma.guru.findUnique({ where: { username } });\n// If not guru...\nconst siswa = await prisma.siswa.findUnique({ where: { username } });\n```\n\n**Problem:** Sequential queries — worst case is 3 round-trips. With unique usernames across tables, `Promise.all` would cut latency to 1 round-trip.\n\n**Fix:**\n```typescript\nconst [admin, guru, siswa] = await Promise.all([\n  prisma.admin.findUnique({ where: { username } }),\n  prisma.guru.findUnique({ where: { username } }),\n  prisma.siswa.findUnique({ where: { username } }),\n]);\n// Then check password on whichever matched\n```\n\n---\n\n",
-        "level": 3
+        "title": "5× Array Filter in `src/app/api/admin/stats/route.ts:45-49`",
+        "content": "\n```typescript\n// 5 full-array iterations for what one pass does\nconst totalHadir = monthlyKehadiran.filter(k => k.status === 'HADIR').length;\nconst totalIzin  = monthlyKehadiran.filter(k => k.status === 'IZIN').length;\nconst totalSakit = monthlyKehadiran.filter(k => k.status === 'SAKIT').length;\nconst totalPkl   = monthlyKehadiran.filter(k => k.status === 'PKL').length;\nconst totalAlpa  = monthlyKehadiran.filter(k => k.status === 'ALPA').length;\n```\n\n**Fix**: Single pass with `reduce`:\n\n```typescript\nconst counts = monthlyKehadiran.reduce((acc, k) => {\n  if (k.status === 'HADIR') acc.hadir++;\n  else if (k.status === 'IZIN') acc.izin++;\n  else if (k.status === 'SAKIT') acc.sakit++;\n  else if (k.status === 'PKL') acc.pkl++;\n  else if (k.status === 'ALPA') acc.alpa++;\n  return acc;\n}, { hadir: 0, izin: 0, sakit: 0, pkl: 0, alpa: 0 });\n```\n\n",
+        "level": 4
       },
       {
-        "title": "4. React Re-Render Issues",
+        "title": "Double Sort in `AttendanceForm.tsx` Renders",
+        "content": "\nThe sort runs **twice** every render — once for desktop table, once for mobile cards:\n\n```tsx\n// Line 221 + 230 — identical sort, two new arrays\n{[...students].sort((a, b) => ...).map(s => <tr>...</tr>)}\n{[...students].sort((a, b) => ...).map(s => <div>...</div>)}\n```\n\n**Fix**: Memoize:\n\n```typescript\nconst sortedStudents = useMemo(() =>\n  [...students].sort((a, b) => sortMode === 'abjad'\n    ? a.nama.localeCompare(b.nama, 'id')\n    : (parseInt(a.nis)||0) - (parseInt(b.nis)||0)),\n  [students, sortMode]\n);\n```\n\n---\n\n",
+        "level": 4
+      },
+      {
+        "title": "3. 💾 Caching Opportunities",
         "content": "\n",
-        "level": 2
-      },
-      {
-        "title": "🔴 Inline arrow functions in `.map()`",
-        "content": "**File:** `src/app/page.tsx` (AdminDashboard)\n\n```typescript\n{approvals.map((a) => (\n  <button onClick={() => handleApproval(a.id, 'REJECTED', a.nama)}>Tolak</button>\n  <button onClick={() => handleApproval(a.id, 'APPROVED', a.nama)}>Setujui</button>\n))}\n```\n\n**Problem:** Every render creates new function instances for every approval item, which breaks memoization of any child component.\n\n**Impact:** Low for the current code (no `memo` wrappers), but it prevents adding memoization later.\n\n**Fix:** Extract approval card into its own component, or create a single memoized handler:\n```typescript\nconst handleApproval = useCallback((id: string, act: 'APPROVED' | 'REJECTED', nama: string) => {\n  // ...\n}, []);\n```\n\n",
         "level": 3
       },
       {
-        "title": "🟡 Stat cards recreated on every render",
-        "content": "**File:** `src/app/page.tsx`\n\n```typescript\n{[\n  { label: 'Rata-rata Kehadiran', value: `${stats.avgAttendance}%`, ... },\n  // ...\n].map((s) => (\n  <div key={s.label} className=\"stat-card\">...</div>\n))}\n```\n\n**Problem:** The array literal inside JSX is recreated every render. Move it to a constant or `useMemo`.\n\n**Fix:**\n```typescript\nconst statCards = useMemo(() => [\n  { label: 'Rata-rata Kehadiran', value: `${stats.avgAttendance}%`, ... },\n  // ...\n], [stats.avgAttendance, stats.todayStats, stats.pendingIzinCount, stats.totalStudents]);\n```\n\n",
-        "level": 3
+        "title": "All 22 API Routes Use `force-dynamic`",
+        "content": "\nEvery route handler disables caching. No data is ever reused. Specific candidates:\n\n| Route | Cache Strategy | Rationale |\n|-------|---------------|-----------|\n| `/api/admin/stats` | SWR 60s | Monthly aggregates don't need sub-minute freshness |\n| `/api/admin/classes` | SWR 300s | Classes change only when admin adds/edits one |\n| `/api/recap/daily` | SWR 30s | Same date queried by multiple teachers |\n| `/api/recap/*` (historical) | SWR 120s | Past dates never change |\n\n**Example for stats:**\n\n```typescript\n// ponytail: SWR via Next.js segment config, freshness ≥60s for aggregate data\nexport const revalidate = 60;\n// Remove: export const dynamic = 'force-dynamic';\n```\n\n",
+        "level": 4
       },
       {
-        "title": "🟡 Massive single component (Recap page)",
-        "content": "**File:** `src/app/recap/page.tsx` — **460+ lines** of JSX with 14+ `useState` hooks\n\n**Problem:** Every state change re-renders the entire tree. The bulanan tab and harian tab are mutually exclusive but share state, so changing a harian filter re-renders the bulanan DOM too.\n\n**Fix — split into smaller components:**\n- `DailyRecapSection` — owns harian state\n- `MonthlyRecapSection` — owns bulanan state\n- `PhotoModal` — separate modal component\n\nThen the parent only decides which tab to show, no shared state pollution:\n\n```typescript\n{tab === 'bulanan' ? <MonthlyRecapSection /> : <DailyRecapSection />}\n```\n\n---\n\n",
-        "level": 3
+        "title": "Redundant Session Fetch in `Header.tsx:27`",
+        "content": "\n```typescript\nuseEffect(() => { fetchSession(); }, [pathname]);\n```\n\nOn every page navigation, the header re-fetches `/api/auth/session` — a roundtrip just to re-read what the cookie already says. The session cookie is `session_token` and the client already had it.\n\n**Fix**: Call `fetchSession()` once on mount, not on every pathname change:\n\n```typescript\nuseEffect(() => { fetchSession(); }, []);  // only on mount\n```\n\nOr better, store `{nama, role}` in a non-httpOnly cookie alongside the session token so the client reads it instantly.\n\n---\n\n",
+        "level": 4
       },
       {
-        "title": "5. Memory Leaks",
+        "title": "4. ⚡ React Re-render Issues",
         "content": "\n",
-        "level": 2
-      },
-      {
-        "title": "🔴 No AbortController on any useEffect fetch",
-        "content": "\n**All client pages** are affected. Switching between tabs, changing filters, or unmounting mid-fetch leaves the fetch promise hanging. It resolves, sets state on an unmounted component — React logs warnings in dev mode, and in production the callback queue holds references preventing GC.\n\n",
         "level": 3
       },
       {
-        "title": "🟡 In-memory rate limit store",
-        "content": "**File:** `src/app/api/auth/login/route.ts`\n\n```typescript\nconst loginAttempts = new Map<string, { count: number; resetTime: number }>();\n```\n\n**Problem:** Entries survive for 15 minutes but the Map grows unbounded by unique IPs. Thousands of unique IPs = memory leak.\n\n**Fix — cleanup expired entries periodically or use a TTL Map:**\n```typescript\nfunction cleanupExpired() {\n  const now = Date.now();\n  for (const [ip, entry] of loginAttempts) {\n    if (now > entry.resetTime) loginAttempts.delete(ip);\n  }\n}\nsetInterval(cleanupExpired, 60_000); // every minute\n```\nOr just use a proper external rate limiter.\n\n---\n\n",
-        "level": 3
+        "title": "Unnecessary Sequential API Calls in `src/app/page.tsx:24-35`",
+        "content": "\n```typescript\nconst fetchData = async () => {\n  const statsRes = await fetch('/api/admin/stats');   // wait...\n  const statsData = await statsRes.json();\n  setStats(statsData);\n  const appRes = await fetch('/api/admin/approval');  // ...then this\n  // ...\n};\n```\n\nThese two endpoints are independent. Sequential waiting adds ~2× latency to page load.\n\n**Fix**: Parallel with `Promise.all`:\n\n```typescript\nconst [statsRes, appRes] = await Promise.all([\n  fetch('/api/admin/stats'),\n  fetch('/api/admin/approval'),\n]);\n```\n\n",
+        "level": 4
       },
       {
-        "title": "6. Server-Side Caching Opportunities",
+        "title": "Button Definitions Re-created Every Render in `AttendanceForm.tsx`",
+        "content": "\n`btnRow()` and `btnRowMobile()` define 5 button config objects inside the function body on every render, then map over them. These arrays are static — they never change.\n\n**Fix**: Hoist the button config arrays outside the component (or use `useMemo`) so they're created once.\n\n---\n\n",
+        "level": 4
+      },
+      {
+        "title": "5. 🧠 Memory Leaks & Unbounded Growth",
         "content": "\n",
-        "level": 2
-      },
-      {
-        "title": "🔴 `force-dynamic` on every route prevents all response caching",
-        "content": "\n**Files:** Every single API route\n\nThis means every request hits the DB fresh. Many routes return data that's stable within a day (kelas list, student list, stats for a given date).\n\n| Route | Cache TTL | Why |\n|-------|-----------|-----|\n| `/api/classes` | 5 min | Class list changes rarely |\n| `/api/admin/stats` | 30-60s | Real-time-ish but heavy query |\n| `/api/recap/daily/status` | 5 min | Same date always returns same result |\n| `/api/recap` | 5 min | Monthly recap for past months is immutable |\n\n**Fix — opt into Next.js `stale-while-revalidate`:**\n```typescript\nexport async function GET() {\n  const data = await computeExpensiveQuery();\n  return NextResponse.json(data, {\n    headers: {\n      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',\n    },\n  });\n}\n```\n\nRemove `export const dynamic = 'force-dynamic'` from routes that can benefit from caching.\n\n",
         "level": 3
       },
       {
-        "title": "🟡 File uploads saved to disk",
-        "content": "\n**Files saved to `public/uploads/` with no cleanup** — over time this grows without bound. No dedup for identical uploads, no cleanup for abandoned uploads (student submits permit but the record is deleted).\n\n---\n\n",
+        "title": "Growing Login Rate-Limiter Map in `src/app/api/auth/login/route.ts:7`",
+        "content": "\n```typescript\nconst loginAttempts = new Map<string, { count: number; resetTime: number }>();\n```\n\nEach unique IP adds an entry that lives for up to 15 minutes. **No cleanup mechanism.** With 1000 unique IPs/hour, the Map holds 1000 entries permanently (each expires after 15 min but is never deleted).\n\n**Fix**: Add periodic cleanup or use a `Map` with a max-size eviction:\n\n```typescript\n// Simple TTL sweep — run every 5 minutes\nconst CLEANUP_INTERVAL = 5 * 60 * 1000;\nif (loginAttempts.size > 1000) {\n  const now = Date.now();\n  for (const [ip, entry] of loginAttempts) {\n    if (now > entry.resetTime) loginAttempts.delete(ip);\n  }\n}\n```\n\n",
+        "level": 4
+      },
+      {
+        "title": "FileReader Data URLs Held in State",
+        "content": "\n`AttendanceForm.tsx:66` reads uploaded images as base64 data URLs and stores them in component state (`buktiPreview`). With a full class of ~30 students each uploading a 1-2MB photo, the component holds **~45-60MB of base64 strings** in memory until the user navigates away.\n\n**Fix**: Use `URL.createObjectURL()` instead (blob URLs that don't encode to base64), and revoke when done:\n\n```typescript\nconst previewUrl = URL.createObjectURL(file);\n// store previewUrl in state\n// ... cleanup on unmount or when preview replaced:\nuseEffect(() => {\n  return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };\n}, [previewUrl]);\n```\n\n---\n\n",
+        "level": 4
+      },
+      {
+        "title": "6. 📊 Quick Wins Summary",
+        "content": "| Priority | Issue | File | Effort |\n|----------|-------|------|--------|\n| 🔴 | N+1 per-class student query | `stats/route.ts:68` | 15min |\n| 🔴 | 5× filter → single reduce | `stats/route.ts:45-49` | 5min |\n| 🟡 | Parallel fetch data & approval | `page.tsx:24` | 2min |\n| 🟡 | Memoize sorted students | `AttendanceForm.tsx` | 5min |\n| 🟡 | Cache historical routes (SWR) | Multiple route.ts | 10min |\n| 🟡 | `fetchSession` on pathname change | `Header.tsx:27` | 2min |\n| 🟢 | Base64 preview → objectURL | `AttendanceForm.tsx:66` | 10min |\n| 🟢 | Rate-limiter periodic cleanup | `login/route.ts` | 5min |",
         "level": 3
-      },
-      {
-        "title": "7. Bundle / Network",
-        "content": "\n",
-        "level": 2
-      },
-      {
-        "title": "🟡 jspdf dynamic import nesting",
-        "content": "**File:** `src/app/recap/page.tsx`\n\n```typescript\nimport('jspdf').then((m) => {\n  import('jspdf-autotable').then(() => {  // waits for first import to resolve\n```\n\n**Fix:** Parallel loading with `Promise.all` is faster:\n```typescript\nPromise.all([\n  import('jspdf'),\n  import('jspdf-autotable'),\n]).then(([{ default: jsPDF }]) => {\n  // ...\n});\n```\n\n",
-        "level": 3
-      },
-      {
-        "title": "🟡 Duplicated `exportDailyPDF` function",
-        "content": "**`recap/page.tsx` and `recap/public/page.tsx`** both define the same ~40-line function. Aside from maintenance debt, it's shipped twice in the client bundle.\n\n**Fix:** Extract to `@/utils/pdfExport.ts` as already done for monthly PDF.\n\n---\n\n",
-        "level": 3
-      },
-      {
-        "title": "Priority Summary",
-        "content": "\n| Severity | Issue | Effort | Impact |\n|----------|-------|--------|--------|\n| **CRITICAL** | N+1 in attendance POST handler | Low (add batch queries) | High for large class sizes |\n| **CRITICAL** | No AbortController anywhere | Low (wrap in custom hook) | Race conditions + memory leaks |\n| **HIGH** | N+1 in stats perKelas | Medium | Slow dashboard load with many classes |\n| **HIGH** | No caching on any API route | Low (set Cache-Control headers) | Unnecessary DB hits |\n| **HIGH** | Redundant `.filter()` loops | Low (single pass) | Small gain per call, accumulates |\n| **MEDIUM** | Massive single component (recap) | Medium (split components) | Smoother tab switching |\n| **MEDIUM** | Sequential login queries | Low (Promise.all) | ~30ms faster login |\n| **MEDIUM** | In-memory rate limiter leaks | Low (add cleanup interval) | Prevents OOM under many IPs |\n| **LOW** | Inline arrow functions in map | Low | Prepares for memoization |\n| **LOW** | jspdf sequential import | Low | PDF export loads faster |\n\n---\n\n",
-        "level": 2
-      },
-      {
-        "title": "Quickest Wins (implement in order)",
-        "content": "1. **Add `AbortController` to all `useEffect` fetches** — shared `useFetch` hook, ~15 min\n2. **Batch attendance POST queries** — `findMany` + `Map` instead of loop, ~10 min\n3. **`Cache-Control` headers on stable routes** — `/api/classes`, `/api/recap/daily/status`, ~5 min\n4. **Single-pass filter in stats/recap routes** — `reduce` or `forEach` instead of 5x `.filter`, ~5 min\n5. **`Promise.all` on login queries** — ~2 min\n6. **Extract duplicated `exportDailyPDF`** — reduce bundle size, ~5 min",
-        "level": 2
       }
     ],
     "codeBlocks": [
       {
         "language": "typescript",
-        "code": "const perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({ where: { kelasId: k.id }, select: { id: true } }))\n      .map(s => s.id);\n    // filters monthlyKehadiran (already fetched) in-memory per class...\n  })\n);"
+        "code": "const kelasList = await prisma.kelas.findMany(...);  // 1 query\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({   // ← N queries, one per class\n      where: { kelasId: k.id }, select: { id: true }\n    })).map(s => s.id);\n    const khd = monthlyKehadiran.filter(h => ids.includes(h.siswaId));\n    // ...\n  })\n);"
       },
       {
         "language": "typescript",
-        "code": "// Single aggregation query instead of N+1\nconst perKelas = await prisma.kelas.findMany({\n  select: {\n    nama: true,\n    _count: { select: { siswa: true } },\n    siswa: {\n      select: {\n        kehadiran: {\n          where: { tanggal: { gte: startOfMonth, lte: endOfMonth } },\n          select: { status: true }\n        }\n      }\n    }\n  }\n}).then(kl => kl.map(k => {\n  const hadir = k.siswa.flatMap(s => s.kehadiran).filter(kh => kh.status === 'HADIR').length;\n  const total = k.siswa.flatMap(s => s.kehadiran).length;\n  return { nama: k.nama.replace(/-/g, ' '), persen: total > 0 ? Number(((hadir/total)*100).toFixed(1)) : 0, siswa: k._count.siswa };\n}));"
+        "code": "const allStudents = await prisma.siswa.findMany({\n  select: { id: true, kelasId: true }\n});\nconst studentMap = new Map<string, string[]>();\nfor (const s of allStudents) {\n  const arr = studentMap.get(s.kelasId) ?? [];\n  arr.push(s.id);\n  studentMap.set(s.kelasId, arr);\n}\n// Now use studentMap.get(k.id) — zero extra DB queries"
       },
       {
         "language": "typescript",
-        "code": "for (const item of data) {\n  const student = await prisma.siswa.findUnique({ where: { id: siswaId } });  // query per student\n  const existingKhd = await prisma.kehadiran.findUnique({ ... });              // query per student\n  // ...\n}"
+        "code": "// 5 full-array iterations for what one pass does\nconst totalHadir = monthlyKehadiran.filter(k => k.status === 'HADIR').length;\nconst totalIzin  = monthlyKehadiran.filter(k => k.status === 'IZIN').length;\nconst totalSakit = monthlyKehadiran.filter(k => k.status === 'SAKIT').length;\nconst totalPkl   = monthlyKehadiran.filter(k => k.status === 'PKL').length;\nconst totalAlpa  = monthlyKehadiran.filter(k => k.status === 'ALPA').length;"
       },
       {
         "language": "typescript",
-        "code": "const ids = data.map(i => i.siswaId);\nconst [students, existingKehadiran] = await Promise.all([\n  prisma.siswa.findMany({ where: { id: { in: ids } } }),\n  prisma.kehadiran.findMany({ where: { siswaId: { in: ids }, tanggal: targetDate } }),\n]);\nconst studentMap = new Map(students.map(s => [s.id, s]));\nconst khdMap = new Map(existingKehadiran.map(k => [k.siswaId, k]));\n\nfor (const item of data) {\n  const student = studentMap.get(item.siswaId);\n  const existingKhd = khdMap.get(item.siswaId);\n  // ...\n}"
+        "code": "const counts = monthlyKehadiran.reduce((acc, k) => {\n  if (k.status === 'HADIR') acc.hadir++;\n  else if (k.status === 'IZIN') acc.izin++;\n  else if (k.status === 'SAKIT') acc.sakit++;\n  else if (k.status === 'PKL') acc.pkl++;\n  else if (k.status === 'ALPA') acc.alpa++;\n  return acc;\n}, { hadir: 0, izin: 0, sakit: 0, pkl: 0, alpa: 0 });"
+      },
+      {
+        "language": "tsx",
+        "code": "// Line 221 + 230 — identical sort, two new arrays\n{[...students].sort((a, b) => ...).map(s => <tr>...</tr>)}\n{[...students].sort((a, b) => ...).map(s => <div>...</div>)}"
       },
       {
         "language": "typescript",
-        "code": "useEffect(() => { fetchData(); }, []);\nuseEffect(() => {\n  if (tab !== 'bulanan' || !kelas) return;\n  (async () => {\n    setRekapList((await (await fetch(`/api/recap?kelas=${kelas}&bulan=${bulan}`)).json()).rekap || []);\n  })();\n}, [kelas, bulan, tab]);"
+        "code": "const sortedStudents = useMemo(() =>\n  [...students].sort((a, b) => sortMode === 'abjad'\n    ? a.nama.localeCompare(b.nama, 'id')\n    : (parseInt(a.nis)||0) - (parseInt(b.nis)||0)),\n  [students, sortMode]\n);"
       },
       {
         "language": "typescript",
-        "code": "function useFetch<T>(url: string | null): { data: T | null; loading: boolean; error: string | null } {\n  const [data, setData] = useState<T | null>(null);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    if (!url) return;\n    const controller = new AbortController();\n    setLoading(true);\n    fetch(url, { signal: controller.signal })\n      .then(r => r.json())\n      .then(d => { setData(d); setError(null); })\n      .catch(e => { if (e.name !== 'AbortError') setError(e.message); })\n      .finally(() => setLoading(false));\n    return () => controller.abort();\n  }, [url]);\n\n  return { data, loading, error };\n}"
+        "code": "// ponytail: SWR via Next.js segment config, freshness ≥60s for aggregate data\nexport const revalidate = 60;\n// Remove: export const dynamic = 'force-dynamic';"
       },
       {
         "language": "typescript",
-        "code": "const cache = new Map<string, { data: any; ts: number }>();\nconst CACHE_TTL = 60_000;\n\nasync function fetchWithCache(url: string) {\n  const cached = cache.get(url);\n  if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;\n  const res = await fetch(url);\n  const data = await res.json();\n  cache.set(url, { data, ts: Date.now() });\n  return data;\n}"
+        "code": "useEffect(() => { fetchSession(); }, [pathname]);"
       },
       {
         "language": "typescript",
-        "code": "const totalHadir = monthlyKehadiran.filter((k) => k.status === 'HADIR').length;\nconst totalIzin = monthlyKehadiran.filter((k) => k.status === 'IZIN').length;\nconst totalSakit = monthlyKehadiran.filter((k) => k.status === 'SAKIT').length;\nconst totalPkl = monthlyKehadiran.filter((k) => k.status === 'PKL').length;\nconst totalAlpa = monthlyKehadiran.filter((k) => k.status === 'ALPA').length;"
+        "code": "useEffect(() => { fetchSession(); }, []);  // only on mount"
       },
       {
         "language": "typescript",
-        "code": "const counts = { HADIR: 0, IZIN: 0, SAKIT: 0, PKL: 0, ALPA: 0 };\nmonthlyKehadiran.forEach(k => { counts[k.status]++; });\nconst { HADIR: totalHadir, IZIN: totalIzin, SAKIT: totalSakit, PKL: totalPkl, ALPA: totalAlpa } = counts;"
+        "code": "const fetchData = async () => {\n  const statsRes = await fetch('/api/admin/stats');   // wait...\n  const statsData = await statsRes.json();\n  setStats(statsData);\n  const appRes = await fetch('/api/admin/approval');  // ...then this\n  // ...\n};"
       },
       {
         "language": "typescript",
-        "code": "const hadir = result.filter((r) => r.status === 'HADIR').length;\nconst izin = result.filter((r) => r.status === 'IZIN').length;\n// ... etc"
-      },
-      {
-        "language": "typescript",
-        "code": "const admin = await prisma.admin.findUnique({ where: { username } });\n// If not admin...\nconst guru = await prisma.guru.findUnique({ where: { username } });\n// If not guru...\nconst siswa = await prisma.siswa.findUnique({ where: { username } });"
-      },
-      {
-        "language": "typescript",
-        "code": "const [admin, guru, siswa] = await Promise.all([\n  prisma.admin.findUnique({ where: { username } }),\n  prisma.guru.findUnique({ where: { username } }),\n  prisma.siswa.findUnique({ where: { username } }),\n]);\n// Then check password on whichever matched"
-      },
-      {
-        "language": "typescript",
-        "code": "{approvals.map((a) => (\n  <button onClick={() => handleApproval(a.id, 'REJECTED', a.nama)}>Tolak</button>\n  <button onClick={() => handleApproval(a.id, 'APPROVED', a.nama)}>Setujui</button>\n))}"
-      },
-      {
-        "language": "typescript",
-        "code": "const handleApproval = useCallback((id: string, act: 'APPROVED' | 'REJECTED', nama: string) => {\n  // ...\n}, []);"
-      },
-      {
-        "language": "typescript",
-        "code": "{[\n  { label: 'Rata-rata Kehadiran', value: `${stats.avgAttendance}%`, ... },\n  // ...\n].map((s) => (\n  <div key={s.label} className=\"stat-card\">...</div>\n))}"
-      },
-      {
-        "language": "typescript",
-        "code": "const statCards = useMemo(() => [\n  { label: 'Rata-rata Kehadiran', value: `${stats.avgAttendance}%`, ... },\n  // ...\n], [stats.avgAttendance, stats.todayStats, stats.pendingIzinCount, stats.totalStudents]);"
-      },
-      {
-        "language": "typescript",
-        "code": "{tab === 'bulanan' ? <MonthlyRecapSection /> : <DailyRecapSection />}"
+        "code": "const [statsRes, appRes] = await Promise.all([\n  fetch('/api/admin/stats'),\n  fetch('/api/admin/approval'),\n]);"
       },
       {
         "language": "typescript",
@@ -204,22 +140,14 @@
       },
       {
         "language": "typescript",
-        "code": "function cleanupExpired() {\n  const now = Date.now();\n  for (const [ip, entry] of loginAttempts) {\n    if (now > entry.resetTime) loginAttempts.delete(ip);\n  }\n}\nsetInterval(cleanupExpired, 60_000); // every minute"
+        "code": "// Simple TTL sweep — run every 5 minutes\nconst CLEANUP_INTERVAL = 5 * 60 * 1000;\nif (loginAttempts.size > 1000) {\n  const now = Date.now();\n  for (const [ip, entry] of loginAttempts) {\n    if (now > entry.resetTime) loginAttempts.delete(ip);\n  }\n}"
       },
       {
         "language": "typescript",
-        "code": "export async function GET() {\n  const data = await computeExpensiveQuery();\n  return NextResponse.json(data, {\n    headers: {\n      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',\n    },\n  });\n}"
-      },
-      {
-        "language": "typescript",
-        "code": "import('jspdf').then((m) => {\n  import('jspdf-autotable').then(() => {  // waits for first import to resolve"
-      },
-      {
-        "language": "typescript",
-        "code": "Promise.all([\n  import('jspdf'),\n  import('jspdf-autotable'),\n]).then(([{ default: jsPDF }]) => {\n  // ...\n});"
+        "code": "const previewUrl = URL.createObjectURL(file);\n// store previewUrl in state\n// ... cleanup on unmount or when preview replaced:\nuseEffect(() => {\n  return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };\n}, [previewUrl]);"
       }
     ]
   },
-  "rawOutputPreview": "Now I have a thorough understanding of the codebase. Here's the complete performance analysis:\n\n---\n\n# Performa Analysis — Rekab Kelas\n\n## 1. N+1 Query Patterns\n\n### 🔴 Admin Stats — `perKelas` loop\n**File:** `src/app/api/admin/stats/route.ts`\n\n```typescript\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({ where: { kelasId: k.id }, select: { id: true } }))\n      .map(s => s.id);\n    // filters monthlyKehadiran (already fetched) in-memory per class...\n  })\n);\n```\n\n**Problem:** For each class, it runs a **separate query** (`prisma.siswa.findMany`) to get student IDs, then does the aggregation in-memory. N queries for N classes.\n\n**Fix — group by kelasId at DB level:**\n```typescript\n// Single aggregation query instead of N+1\nconst perKelas = await prisma.kelas.findMany({\n  select: {\n    nama: true,\n    _count: { select: { siswa: true } },\n    siswa: {\n      select: {\n        kehadiran: {\n          where: { tanggal: { gte: startOfMonth, lte: endOfMonth } },\n          select: { status: true }\n        }\n      }\n    }\n  }\n}).then(kl => kl.map(k => {\n  const hadir = k.siswa.flatMap(s => s.kehadiran).filter(kh => kh.status === 'HADIR').length;\n  const total = k.siswa.flatMap(s => s.kehadiran).length;\n  return { nama: k.nama.replace(/-/g, ' '), persen: total > 0 ? Number(((hadir/total)*100).toFixed(1)) : 0, siswa: k._count.siswa };\n}));\n```\nOr compute via raw SQL `GROUP BY kelasId` for larger datasets.\n\n### 🔴 Attendance POST — per-student in a loop\n**File:** `src/app/api/admin/attendance/route.ts` and `src/app/api/teacher/attendance/route.ts`\n\n```typescript\nfor (const item of data) {\n  const student = await prisma.siswa.findUnique({ where: { id: siswaId } });  // query per student\n  const existingKhd = await prisma.kehadiran.findUnique({ ... });              // query per student\n  // ...\n}\n```\n\n**Problem:** If submitting attendance for 30 students, that's **60+ sequential queries**.\n\n**Fix — batch with `findMan",
-  "rawOutputLength": 13580
+  "rawOutputPreview": "## Performance Analysis Report\n\n### 1. 🐌 N+1 Query Patterns\n\n#### Critical: Per-Class Stats in `src/app/api/admin/stats/route.ts:64-73`\n\nFor every class, a separate `siswa.findMany` query runs:\n\n```typescript\nconst kelasList = await prisma.kelas.findMany(...);  // 1 query\nconst perKelas = await Promise.all(\n  kelasList.map(async (k) => {\n    const ids = (await prisma.siswa.findMany({   // ← N queries, one per class\n      where: { kelasId: k.id }, select: { id: true }\n    })).map(s => s.id);\n    const khd = monthlyKehadiran.filter(h => ids.includes(h.siswaId));\n    // ...\n  })\n);\n```\n\n**Fix**: Use `groupBy` in a single query, or batch all student IDs by kelasId with one query + `Map`:\n\n```typescript\nconst allStudents = await prisma.siswa.findMany({\n  select: { id: true, kelasId: true }\n});\nconst studentMap = new Map<string, string[]>();\nfor (const s of allStudents) {\n  const arr = studentMap.get(s.kelasId) ?? [];\n  arr.push(s.id);\n  studentMap.set(s.kelasId, arr);\n}\n// Now use studentMap.get(k.id) — zero extra DB queries\n```\n\n---\n\n### 2. 🔄 Redundant Computations\n\n#### 5× Array Filter in `src/app/api/admin/stats/route.ts:45-49`\n\n```typescript\n// 5 full-array iterations for what one pass does\nconst totalHadir = monthlyKehadiran.filter(k => k.status === 'HADIR').length;\nconst totalIzin  = monthlyKehadiran.filter(k => k.status === 'IZIN').length;\nconst totalSakit = monthlyKehadiran.filter(k => k.status === 'SAKIT').length;\nconst totalPkl   = monthlyKehadiran.filter(k => k.status === 'PKL').length;\nconst totalAlpa  = monthlyKehadiran.filter(k => k.status === 'ALPA').length;\n```\n\n**Fix**: Single pass with `reduce`:\n\n```typescript\nconst counts = monthlyKehadiran.reduce((acc, k) => {\n  if (k.status === 'HADIR') acc.hadir++;\n  else if (k.status === 'IZIN') acc.izin++;\n  else if (k.status === 'SAKIT') acc.sakit++;\n  else if (k.status === 'PKL') acc.pkl++;\n  else if (k.status === 'ALPA') acc.alpa++;\n  return acc;\n}, { hadir: 0, izin: 0, sakit: 0, pkl: 0, alpa: 0 });\n```\n\n####",
+  "rawOutputLength": 6975
 }
